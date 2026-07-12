@@ -1,0 +1,2 @@
+export const dotGridPattern =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='none' stroke='%233E7BFA' stroke-width='1' opacity='0.5'%3E%3Cpath d='M10 10 H60 V60 H110'/%3E%3Cpath d='M10 110 H40 V70'/%3E%3Ccircle cx='60' cy='60' r='3' fill='%233E7BFA'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%233E7BFA'/%3E%3Ccircle cx='110' cy='60' r='2' fill='%233E7BFA'/%3E%3C/g%3E%3C/svg%3E\")"
