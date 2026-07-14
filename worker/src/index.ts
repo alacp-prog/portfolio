@@ -15,10 +15,16 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>();
 
+const ALLOWED_ORIGIN_PATTERNS = [
+  /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/,
+  /^https:\/\/([a-z0-9-]+\.)?portfolio-frontend-f2h\.pages\.dev$/,
+];
+
 app.use(
   "*",
   cors({
-    origin: (origin) => (/^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin) ? origin : null),
+    origin: (origin) =>
+      ALLOWED_ORIGIN_PATTERNS.some((pattern) => pattern.test(origin)) ? origin : null,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
