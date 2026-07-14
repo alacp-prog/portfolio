@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import heroPortrait from '../assets/hero-portrait.webp'
 import { dotGridPattern } from '../utils/patterns.js'
+import { getProjects, getServices } from '../services/api.js'
 
 const content = {
   dev: {
@@ -34,25 +35,10 @@ const marquee = [
 ]
 const marqueeDouble = [...marquee, ...marquee]
 
-const featured = [
-  {
-    tag: 'WEB APP',
-    title: 'Orbit — team dashboard',
-    desc: 'A React + Node.js analytics dashboard built for a 40-person ops team, backed by Supabase.',
-    grad: 'linear-gradient(135deg,#3E7BFA,#2657C7)',
-  },
-  {
-    tag: 'MOBILE APP',
-    title: 'Fernway banking app',
-    desc: 'A React Native neobank app designed and built end-to-end, from flows to launch.',
-    grad: 'linear-gradient(135deg,#8B3FE8,#5A22A8)',
-  },
-  {
-    tag: 'CROSS-PLATFORM',
-    title: 'Loam — plant care shop',
-    desc: 'A Tailwind storefront and companion app sharing one design system and one Firebase backend.',
-    grad: 'linear-gradient(135deg,#3E7BFA,#8B3FE8)',
-  },
+const featuredGradients = [
+  'linear-gradient(135deg,#3E7BFA,#2657C7)',
+  'linear-gradient(135deg,#8B3FE8,#5A22A8)',
+  'linear-gradient(135deg,#3E7BFA,#8B3FE8)',
 ]
 
 const modeButtonBase =
@@ -60,7 +46,19 @@ const modeButtonBase =
 
 function Home() {
   const [mode, setMode] = useState('dev')
+  const [featured, setFeatured] = useState([])
+  const [services, setServices] = useState([])
   const { line1, line2, sub } = content[mode]
+
+  useEffect(() => {
+    getProjects()
+      .then((res) => setFeatured((res.data ?? []).slice(0, 3)))
+      .catch(() => setFeatured([]))
+
+    getServices()
+      .then((res) => setServices(res.data ?? []))
+      .catch(() => setServices([]))
+  }, [])
 
   return (
     <div style={{ fontFamily: "'Inter', sans-serif", background: '#0A0E1F' }} className="overflow-hidden">
@@ -267,33 +265,44 @@ function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
-          {featured.map((p) => (
-            <Link
-              key={p.title}
-              to="/projects"
-              className="block overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.04] no-underline transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02]"
-            >
-              <div className="flex h-[180px] items-center justify-center" style={{ background: p.grad }}>
-                <span
-                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                  className="text-[15px] font-bold tracking-wide text-white/90"
+        {featured.length === 0 ? (
+          <p className="text-white/50">No projects yet — check back soon.</p>
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
+            {featured.map((p, i) => (
+              <Link
+                key={p.id}
+                to="/projects"
+                className="block overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.04] no-underline transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02]"
+              >
+                <div
+                  className="flex h-[180px] items-center justify-center"
+                  style={p.image ? {} : { background: featuredGradients[i % featuredGradients.length] }}
                 >
-                  {p.tag}
-                </span>
-              </div>
-              <div className="px-[22px] pb-6 pt-[22px]">
-                <h3
-                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                  className="m-0 mb-2 text-[19px] font-bold text-white"
-                >
-                  {p.title}
-                </h3>
-                <p className="m-0 text-[14.5px] leading-relaxed text-white/60">{p.desc}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+                  {p.image ? (
+                    <img src={p.image} alt={p.title} className="h-full w-full object-cover" />
+                  ) : (
+                    <span
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                      className="text-[15px] font-bold tracking-wide text-white/90"
+                    >
+                      {p.title}
+                    </span>
+                  )}
+                </div>
+                <div className="px-[22px] pb-6 pt-[22px]">
+                  <h3
+                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    className="m-0 mb-2 text-[19px] font-bold text-white"
+                  >
+                    {p.title}
+                  </h3>
+                  <p className="m-0 text-[14.5px] leading-relaxed text-white/60">{p.description}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="mt-8 bg-[#1a1a2e] px-6 py-24 sm:px-12">
@@ -308,42 +317,27 @@ function Home() {
             One team, one stack, no handoff — from first sketch to shipped app.
           </p>
             <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[20px] bg-white/10 md:grid-cols-2">
-            <div className="p-11 transition-all duration-200 hover:scale-[1.02]" style={{ background: 'linear-gradient(160deg,#16213a,#1a1a2e)' }}>
+            {services.map((s, i) => (
               <div
-                className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl text-xl"
-                style={{ background: 'linear-gradient(135deg,#3E7BFA,#7BB4FF)' }}
+                key={s.id}
+                className="p-11 transition-all duration-200 hover:scale-[1.02]"
+                style={{ background: i % 2 === 0 ? 'linear-gradient(160deg,#16213a,#1a1a2e)' : 'linear-gradient(160deg,#241634,#1a1a2e)' }}
               >
-                💻
+                <div
+                  className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl text-xl"
+                  style={{ background: i % 2 === 0 ? 'linear-gradient(135deg,#3E7BFA,#7BB4FF)' : 'linear-gradient(135deg,#8B3FE8,#C08BFF)' }}
+                >
+                  {s.icon ?? '⚡'}
+                </div>
+                <h3
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                  className="m-0 mb-3 text-[22px] font-bold text-white"
+                >
+                  {s.title}
+                </h3>
+                <p className="m-0 text-[15px] leading-relaxed text-white/60">{s.description}</p>
               </div>
-              <h3
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                className="m-0 mb-3 text-[22px] font-bold text-white"
-              >
-                Development
-              </h3>
-              <p className="m-0 text-[15px] leading-relaxed text-white/60">
-                Cross-platform apps built with React, React Native, Node.js, Firebase and Supabase —
-                one codebase, web and mobile.
-              </p>
-            </div>
-            <div className="p-11 transition-all duration-200 hover:scale-[1.02]" style={{ background: 'linear-gradient(160deg,#241634,#1a1a2e)' }}>
-              <div
-                className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl text-xl"
-                style={{ background: 'linear-gradient(135deg,#8B3FE8,#C08BFF)' }}
-              >
-                🎨
-              </div>
-              <h3
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                className="m-0 mb-3 text-[22px] font-bold text-white"
-              >
-                UX / UI Design
-              </h3>
-              <p className="m-0 text-[15px] leading-relaxed text-white/60">
-                Flows, systems and screens designed in Figma and refined with Tailwind — built by the
-                same team that ships them.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>

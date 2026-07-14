@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { dotGridPattern } from '../utils/patterns.js'
+import { submitContact } from '../services/api.js'
 
 const needOptions = [
   { key: 'web', label: '💻 Web app' },
@@ -26,10 +27,27 @@ function Contact() {
   const [message, setMessage] = useState('')
   const [need, setNeed] = useState('web')
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [errors, setErrors] = useState([])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitted(true)
+    setSubmitting(true)
+    setErrors([])
+
+    try {
+      const needLabel = needOptions.find((opt) => opt.key === need)?.label ?? ''
+      await submitContact({
+        name,
+        email,
+        message: `[${needLabel}] ${message}`,
+      })
+      setSubmitted(true)
+    } catch (error) {
+      setErrors(error.errors ?? [error.message])
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -155,6 +173,13 @@ function Contact() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              {errors.length > 0 && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13.5px] text-red-600">
+                  {errors.map((err) => (
+                    <div key={err}>{err}</div>
+                  ))}
+                </div>
+              )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-[13px] font-semibold text-[#1a1a2e]">Name</label>
@@ -219,13 +244,15 @@ function Contact() {
 
               <button
                 type="submit"
+                disabled={submitting}
                 style={{
                   fontFamily: "'Space Grotesk', sans-serif",
                   background: 'linear-gradient(135deg,#3E7BFA,#8B3FE8)',
+                  opacity: submitting ? 0.7 : 1,
                 }}
-                className="cursor-pointer rounded-xl border-none p-4 text-[15.5px] font-bold text-white transition-all duration-200 hover:scale-[1.02]"
+                className="cursor-pointer rounded-xl border-none p-4 text-[15.5px] font-bold text-white transition-all duration-200 hover:scale-[1.02] disabled:cursor-not-allowed"
               >
-                Send message
+                {submitting ? 'Sending...' : 'Send message'}
               </button>
             </form>
           )}

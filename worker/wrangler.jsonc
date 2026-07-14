@@ -1,0 +1,20 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "portfolio-api",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-07-13",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"d1_databases": [
+		{
+			"binding": "portfolio_db",
+			"database_name": "portfolio-db",
+			"database_id": "2bbbda77-94d0-46f2-ad8d-6495fd40bf4a"
+		}
+	],
+	"vars": {
+		"CLOUDINARY_CLOUD_NAME": "muefamdc",
+		"CLOUDINARY_API_KEY": "425679393731478"
+	}
+}

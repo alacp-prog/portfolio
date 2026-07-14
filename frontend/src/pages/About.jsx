@@ -1,32 +1,7 @@
+import { useEffect, useState } from 'react'
 import aboutPortrait from '../assets/about-portrait.png'
 import { dotGridPattern } from '../utils/patterns.js'
-
-const skillGroups = [
-  {
-    title: 'Web',
-    icon: '💻',
-    color: 'rgba(62,123,250,0.12)',
-    items: ['React', 'Next.js', 'Tailwind CSS', 'Node.js'],
-  },
-  {
-    title: 'Mobile',
-    icon: '📱',
-    color: 'rgba(62,123,250,0.12)',
-    items: ['React Native', 'Expo', 'iOS', 'Android'],
-  },
-  {
-    title: 'Backend & Data',
-    icon: '⚙️',
-    color: 'rgba(139,63,232,0.12)',
-    items: ['Firebase', 'Supabase', 'PostgreSQL', 'REST/GraphQL'],
-  },
-  {
-    title: 'Design',
-    icon: '🎨',
-    color: 'rgba(139,63,232,0.12)',
-    items: ['Figma', 'Design systems', 'Prototyping', 'Motion'],
-  },
-]
+import { getSkills } from '../services/api.js'
 
 const principles = [
   {
@@ -47,6 +22,14 @@ const principles = [
 ]
 
 function About() {
+  const [skills, setSkills] = useState([])
+
+  useEffect(() => {
+    getSkills()
+      .then((res) => setSkills(res.data ?? []))
+      .catch(() => setSkills([]))
+  }, [])
+
   return (
     <div
       style={{ fontFamily: "'Inter', sans-serif", background: '#0A0E1F' }}
@@ -145,38 +128,38 @@ function About() {
         >
           Tools &amp; tech
         </h2>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6">
-          {skillGroups.map((group, i) => (
-            <div
-              key={group.title}
-              style={{ animation: `scaleIn .5s ease ${i * 0.08}s both` }}
-              className="rounded-[18px] border border-white/10 bg-white/[0.04] p-[26px] transition-all duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:border-white/20 hover:bg-white/[0.07]"
-            >
+        {skills.length === 0 ? (
+          <p className="text-white/50">No skills listed yet.</p>
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
+            {skills.map((skill, i) => (
               <div
-                className="mb-4 flex h-[38px] w-[38px] items-center justify-center rounded-[10px] text-[17px]"
-                style={{ background: group.color }}
+                key={skill.id}
+                style={{ animation: `scaleIn .5s ease ${i * 0.06}s both` }}
+                className="rounded-[18px] border border-white/10 bg-white/[0.04] p-[22px] transition-all duration-200 hover:-translate-y-1 hover:scale-[1.03] hover:border-white/20 hover:bg-white/[0.07]"
               >
-                {group.icon}
-              </div>
-              <h3
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                className="m-0 mb-3 text-[16.5px] font-bold text-white"
-              >
-                {group.title}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {group.items.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full bg-white/[0.08] px-3 py-[5px] text-[12.5px] font-medium text-white/70"
+                <div className="mb-3 flex items-center justify-between">
+                  <h3
+                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    className="m-0 text-[15.5px] font-bold text-white"
                   >
-                    {item}
-                  </span>
-                ))}
+                    {skill.name}
+                  </h3>
+                  <span className="text-[12.5px] font-semibold text-white/50">{skill.level ?? 0}%</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${skill.level ?? 0}%`,
+                      background: 'linear-gradient(90deg,#3E7BFA,#8B3FE8)',
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="mx-auto max-w-[1120px] px-6 pb-[120px] pt-16 sm:px-12">

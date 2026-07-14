@@ -6,9 +6,32 @@ export async function apiFetch(path, options = {}) {
     ...options,
   })
 
+  const data = await response.json()
+
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status} ${response.statusText}`)
+    const error = new Error(data.message ?? `Request failed: ${response.status}`)
+    error.errors = data.errors
+    throw error
   }
 
-  return response.json()
+  return data
+}
+
+export function getProjects() {
+  return apiFetch('/projects')
+}
+
+export function getServices() {
+  return apiFetch('/services')
+}
+
+export function getSkills() {
+  return apiFetch('/skills')
+}
+
+export function submitContact(data) {
+  return apiFetch('/contacts', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
 }

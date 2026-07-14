@@ -1,0 +1,3 @@
+ALTER TABLE projects ADD COLUMN category TEXT;
+ALTER TABLE projects ADD COLUMN year INTEGER;
+ALTER TABLE projects ADD COLUMN stack TEXT;
