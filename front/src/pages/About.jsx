@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import aboutPortrait from '../assets/about-portrait.png'
+import aboutPortrait from '../assets/about/about-portrait.png'
 import useT from '../hooks/useT'
 import { eyebrowClass, fadeUp, stagger, circuitHeroBg } from '../lib/ui'
 import { getSkills } from '../services/api'
