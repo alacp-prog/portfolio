@@ -158,7 +158,7 @@ export default function Login({ onLogin, loading, error }) {
           </div>
 
           <a
-            href={import.meta.env.VITE_SITE_URL ?? '/'}
+            href="https://portfolio-frontend-f2h.pages.dev/"
             className="text-center text-[13px] text-white/40 hover:text-white/70"
           >
             ← Retour au site public

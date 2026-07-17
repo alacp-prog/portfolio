@@ -74,7 +74,7 @@ function BackLink({ onLogout }) {
         Se déconnecter
       </button>
       <a
-        href={import.meta.env.VITE_SITE_URL ?? '/'}
+        href="https://portfolio-frontend-f2h.pages.dev/"
         className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-[13px] text-white/55 hover:text-white/85 hover:bg-white/[0.04] transition-colors"
       >
         <ArrowLeft size={15} />
