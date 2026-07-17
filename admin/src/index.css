@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Poppins", ui-sans-serif, system-ui, sans-serif;
+
+  --color-navy-950: #0b0f1c;
+  --color-navy-900: #101728;
+  --color-navy-800: #1b2438;
+  --color-navy-700: #262f47;
+
+  --color-brand-blue: #1466c7;
+  --color-brand-cyan: #00a3d9;
+
+  --color-ink-900: #151b2e;
+  --color-ink-600: #5b6478;
+  --color-ink-400: #8891a6;
+  --color-ink-300: #9aa3b8;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f5f9;
+  --color-surface-subtle: #fafbfd;
+  --color-border-DEFAULT: #e6e9f0;
+  --color-border-soft: #eef1f6;
+
+  --color-danger: #d33a52;
+  --color-danger-bg: #fdedef;
+  --color-danger-border: #f6c6cd;
+  --color-success: #0f9d6c;
+  --color-success-bg: #e7f8ef;
+
+  --color-cat-web: #1466c7;
+  --color-cat-web-bg: #eaf2fe;
+  --color-cat-mobile: #8b3fe8;
+  --color-cat-mobile-bg: #f3eafe;
+  --color-cat-ecom: #0f9d6c;
+  --color-cat-ecom-bg: #e7f8ef;
+  --color-cat-brand: #c9820a;
+  --color-cat-brand-bg: #fcf0dc;
+
+  --shadow-card: 0 1px 2px rgba(16, 23, 40, 0.04), 0 1px 3px rgba(16, 23, 40, 0.06);
+  --shadow-panel: 0 4px 12px rgba(16, 23, 40, 0.05), 0 1px 3px rgba(16, 23, 40, 0.04);
+  --shadow-drawer: -24px 0 60px rgba(11, 15, 28, 0.18);
+  --shadow-popover: 0 12px 32px rgba(16, 23, 40, 0.12), 0 2px 8px rgba(16, 23, 40, 0.06);
+
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+
+  @keyframes shimmer {
+    0% {
+      background-position: -400px 0;
+    }
+    100% {
+      background-position: 400px 0;
+    }
+  }
+}
+
+.dark {
+  color-scheme: dark;
+
+  --color-ink-900: #eef1f7;
+  --color-ink-600: #a7afc4;
+  --color-ink-400: #78829a;
+  --color-ink-300: #5c657c;
+
+  --color-surface: #131a2c;
+  --color-surface-muted: #0a0e19;
+  --color-surface-subtle: #171f35;
+  --color-border-DEFAULT: #262f47;
+  --color-border-soft: #1d2438;
+
+  --color-danger: #ff6b81;
+  --color-danger-bg: #2c1520;
+  --color-danger-border: #4a2130;
+  --color-success: #2fd696;
+  --color-success-bg: #10291f;
+
+  --color-cat-web: #5b9bf0;
+  --color-cat-web-bg: #16233d;
+  --color-cat-mobile: #b18af2;
+  --color-cat-mobile-bg: #221c3b;
+  --color-cat-ecom: #2fd696;
+  --color-cat-ecom-bg: #10291f;
+  --color-cat-brand: #f0b23a;
+  --color-cat-brand-bg: #2e2411;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.24);
+  --shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-drawer: -24px 0 60px rgba(0, 0, 0, 0.5);
+  --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-surface-muted);
+    font-family: var(--font-sans);
+    color: var(--color-ink-900);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  a {
+    color: var(--color-brand-blue);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--color-navy-950);
+  }
+
+  ::placeholder {
+    color: var(--color-ink-300);
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-brand-cyan) 25%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-blue);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  .skeleton {
+    background: linear-gradient(90deg, #eef1f6 0%, #f7f8fb 40%, #eef1f6 80%);
+    background-size: 800px 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  .dark .skeleton {
+    background: linear-gradient(90deg, #171f35 0%, #1d2540 40%, #171f35 80%);
+    background-size: 800px 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: none;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
