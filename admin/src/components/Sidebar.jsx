@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NavLink } from 'react-router-dom'
-import { SquaresFour, Sparkle, Envelope, Users, ArrowLeft, X } from '@phosphor-icons/react'
+import { SquaresFour, Sparkle, Envelope, Users, ArrowLeft, SignOut, X } from '@phosphor-icons/react'
 import { overlayVariants } from '../lib/motion'
 import logo from '../assets/logo-white.png'
 
@@ -62,9 +62,17 @@ function NavList({ role, onNavigate, layoutScope }) {
   )
 }
 
-function BackLink() {
+function BackLink({ onLogout }) {
   return (
     <div className="mt-auto flex flex-col gap-0.5 border-t border-white/[0.08] pt-4">
+      <button
+        type="button"
+        onClick={onLogout}
+        className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-left text-[13px] text-white/55 hover:bg-danger-bg hover:text-danger transition-colors cursor-pointer"
+      >
+        <SignOut size={15} />
+        Se déconnecter
+      </button>
       <a
         href={import.meta.env.VITE_SITE_URL ?? '/'}
         className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-[13px] text-white/55 hover:text-white/85 hover:bg-white/[0.04] transition-colors"
@@ -76,7 +84,7 @@ function BackLink() {
   )
 }
 
-export default function Sidebar({ role, mobileOpen, onCloseMobile }) {
+export default function Sidebar({ role, mobileOpen, onCloseMobile, onLogout }) {
   useEffect(() => {
     if (!mobileOpen) return
     function handleKeyDown(e) {
@@ -94,7 +102,7 @@ export default function Sidebar({ role, mobileOpen, onCloseMobile }) {
           Contenu
         </span>
         <NavList role={role} layoutScope="desktop" />
-        <BackLink />
+        <BackLink onLogout={onLogout} />
       </aside>
 
       <AnimatePresence>
@@ -132,7 +140,7 @@ export default function Sidebar({ role, mobileOpen, onCloseMobile }) {
                 Contenu
               </span>
               <NavList role={role} onNavigate={onCloseMobile} layoutScope="mobile" />
-              <BackLink />
+              <BackLink onLogout={onLogout} />
             </motion.aside>
           </>
         )}

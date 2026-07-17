@@ -50,7 +50,7 @@ export default function Login({ onLogin, loading, error }) {
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           src={logo}
           alt="Pix.Ala.Code"
-          className="relative z-10 mb-8 h-14 w-auto"
+          className="relative z-10 mb-8 h-32 w-auto max-w-[260px] object-contain"
         />
         <h1 className="relative z-10 mb-4 max-w-md font-heading text-[40px] font-extrabold leading-[1.2] tracking-tight">
           Espace admin

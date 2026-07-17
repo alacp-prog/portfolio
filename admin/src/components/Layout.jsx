@@ -20,7 +20,12 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[252px_1fr]">
-      <Sidebar role={user?.role} mobileOpen={mobileNavOpen} onCloseMobile={() => setMobileNavOpen(false)} />
+      <Sidebar
+        role={user?.role}
+        mobileOpen={mobileNavOpen}
+        onCloseMobile={() => setMobileNavOpen(false)}
+        onLogout={logout}
+      />
 
       <div className="flex min-w-0 flex-col">
         <TopBar
@@ -29,7 +34,6 @@ export default function Layout() {
           theme={theme}
           onToggleTheme={toggleTheme}
           adminEmail={user?.email}
-          onLogout={logout}
         />
 
         <main className="min-w-0 flex-1 overflow-x-hidden px-4 py-6 md:px-8 md:py-8">

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { List, CaretRight, Sun, Moon, SignOut } from '@phosphor-icons/react'
+import { List, CaretRight, Sun, Moon } from '@phosphor-icons/react'
 import { tapScale } from '../lib/motion'
 
 export default function TopBar({
@@ -8,7 +8,6 @@ export default function TopBar({
   theme,
   onToggleTheme,
   adminEmail,
-  onLogout,
 }) {
   const initials = adminEmail ? adminEmail.slice(0, 2).toUpperCase() : 'AB'
 
@@ -53,16 +52,6 @@ export default function TopBar({
         </button>
 
         <div className="hidden h-[26px] w-px bg-border sm:block" />
-
-        <button
-          type="button"
-          onClick={onLogout}
-          aria-label="Se déconnecter"
-          title={adminEmail ? `Déconnecter ${adminEmail}` : 'Se déconnecter'}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-600 hover:bg-danger-bg hover:text-danger cursor-pointer"
-        >
-          <SignOut size={18} />
-        </button>
 
         <motion.span
           whileTap={tapScale}
