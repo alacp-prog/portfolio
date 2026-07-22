@@ -14,7 +14,20 @@
 		}
 	],
 	"vars": {
-		"CLOUDINARY_CLOUD_NAME": "muefamdc",
-		"CLOUDINARY_API_KEY": "425679393731478"
-	}
+		"CLOUDINARY_CLOUD_NAME": "muefamdc"
+	},
+	// CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET and JWT_SECRET are provisioned via
+	// `wrangler secret put <NAME>` (production) and worker/.dev.vars (local dev), not here.
+	"ratelimits": [
+		{
+			"name": "AUTH_RATE_LIMITER",
+			"namespace_id": "1001",
+			"simple": { "limit": 5, "period": 60 }
+		},
+		{
+			"name": "CONTACT_RATE_LIMITER",
+			"namespace_id": "1002",
+			"simple": { "limit": 5, "period": 60 }
+		}
+	]
 }

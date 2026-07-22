@@ -1,5 +1,4 @@
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
-const TOKEN_KEY = 'admin_token'
 
 let unauthorizedHandler = null
 
@@ -7,27 +6,13 @@ export function setUnauthorizedHandler(fn) {
   unauthorizedHandler = fn
 }
 
-export function getAuthToken() {
-  return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY)
-}
-
-export function setAuthToken(token, remember) {
-  clearAuthToken()
-  ;(remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token)
-}
-
-export function clearAuthToken() {
-  localStorage.removeItem(TOKEN_KEY)
-  sessionStorage.removeItem(TOKEN_KEY)
-}
-
 export async function apiFetch(path, options = {}) {
-  const token = getAuthToken()
-
   const response = await fetch(`${BASE_URL}${path}`, {
+    // Sends/receives the HttpOnly admin_token cookie set by the API — the token itself
+    // is never readable from JS, so it can no longer be attached as an Authorization header.
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
     ...options,
@@ -122,11 +107,10 @@ export async function uploadImage(file, folder = 'portfolio') {
   body.append('file', file)
   body.append('folder', folder)
 
-  const token = getAuthToken()
   const response = await fetch(`${BASE_URL}/upload`, {
     method: 'POST',
     body,
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    credentials: 'include',
   })
   const data = await response.json()
 

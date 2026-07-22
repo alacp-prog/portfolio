@@ -1,5 +1,8 @@
 import type { Context, Next } from "hono";
+import { getCookie } from "hono/cookie";
 import { verifyToken } from "../lib/jwt";
+
+export const AUTH_COOKIE_NAME = "admin_token";
 
 export type AuthUser = {
   id: number;
@@ -20,7 +23,10 @@ type Variables = {
 
 export async function requireAuth(c: Context<{ Bindings: Bindings; Variables: Variables }>, next: Next) {
   const authHeader = c.req.header("Authorization") ?? "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+  const headerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+  // Cookie is the primary transport for the admin dashboard; the Authorization header
+  // remains supported as a fallback for direct API access (e.g. scripts, Postman).
+  const token = headerToken ?? getCookie(c, AUTH_COOKIE_NAME) ?? null;
 
   if (!token) {
     return c.json({ success: false, message: "Authentification requise" }, 401);

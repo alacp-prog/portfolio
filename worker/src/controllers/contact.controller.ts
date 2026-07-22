@@ -4,6 +4,7 @@ import { validateCreateContact } from "../validation/contact.validation";
 
 type Bindings = {
   portfolio_db: D1Database;
+  CONTACT_RATE_LIMITER: RateLimit;
 };
 
 export class ContactController {
@@ -36,6 +37,15 @@ export class ContactController {
   }
 
   static async create(c: Context<{ Bindings: Bindings }>) {
+    const ip = c.req.header("CF-Connecting-IP") ?? "unknown";
+    const { success: withinLimit } = await c.env.CONTACT_RATE_LIMITER.limit({ key: ip });
+    if (!withinLimit) {
+      return c.json(
+        { success: false, message: "Trop de messages envoyés. Réessayez plus tard." },
+        429
+      );
+    }
+
     const body = await c.req.json();
     const validation = validateCreateContact(body);
 

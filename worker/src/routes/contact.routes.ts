@@ -5,6 +5,7 @@ import { requireAuth, requireRole } from "../middleware/auth.middleware";
 type Bindings = {
   portfolio_db: D1Database;
   JWT_SECRET: string;
+  CONTACT_RATE_LIMITER: RateLimit;
 };
 
 const contactRoutes = new Hono<{ Bindings: Bindings }>();

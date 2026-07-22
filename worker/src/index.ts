@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { secureHeaders } from "hono/secure-headers";
 import projectRoutes from "./routes/project.routes";
 import serviceRoutes from "./routes/service.routes";
 import skillRoutes from "./routes/skill.routes";
@@ -14,6 +15,8 @@ type Bindings = {
   CLOUDINARY_API_KEY: string;
   CLOUDINARY_API_SECRET: string;
   JWT_SECRET: string;
+  AUTH_RATE_LIMITER: RateLimit;
+  CONTACT_RATE_LIMITER: RateLimit;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -32,8 +35,19 @@ app.use(
       ALLOWED_ORIGIN_PATTERNS.some((pattern) => pattern.test(origin)) ? origin : null,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
+    // Required so the browser stores/sends the HttpOnly admin_token cookie cross-site
+    // (admin dashboard on *.pages.dev, API on *.workers.dev). Safe to combine with
+    // credentials because origin is a strict allowlist above, never a wildcard.
+    credentials: true,
   })
 );
+
+app.use("*", secureHeaders());
+
+app.onError((err, c) => {
+  console.error(err);
+  return c.json({ success: false, message: "Erreur interne du serveur" }, 500);
+});
 
 app.get("/", async (c) => {
   const result = await c.env.portfolio_db

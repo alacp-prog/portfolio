@@ -3,9 +3,6 @@ import {
   login as apiLogin,
   logout as apiLogout,
   getMe,
-  getAuthToken,
-  setAuthToken,
-  clearAuthToken,
   setUnauthorizedHandler,
 } from '../services/api'
 
@@ -16,7 +13,6 @@ export function useAuthState() {
   const [loading, setLoading] = useState(false)
 
   const reset = useCallback(() => {
-    clearAuthToken()
     setUser(null)
     setStatus('unauthenticated')
   }, [])
@@ -24,11 +20,8 @@ export function useAuthState() {
   useEffect(() => {
     setUnauthorizedHandler(reset)
 
-    if (!getAuthToken()) {
-      setStatus('unauthenticated')
-      return
-    }
-
+    // The auth token now lives in an HttpOnly cookie sent automatically with every
+    // request, so session state is only known by asking the server.
     getMe()
       .then((res) => {
         setUser(res.data)
@@ -42,7 +35,6 @@ export function useAuthState() {
     setError(null)
     try {
       const res = await apiLogin(email, password, remember)
-      setAuthToken(res.data.token, remember)
       setUser(res.data.user)
       setStatus('authenticated')
     } catch (err) {

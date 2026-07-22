@@ -1,11 +1,13 @@
 import type { Context } from "hono";
+import { setCookie, deleteCookie } from "hono/cookie";
 import { UserService } from "../services/user.service";
 import { signToken } from "../lib/jwt";
-import type { AuthUser } from "../middleware/auth.middleware";
+import { AUTH_COOKIE_NAME, type AuthUser } from "../middleware/auth.middleware";
 
 type Bindings = {
   portfolio_db: D1Database;
   JWT_SECRET: string;
+  AUTH_RATE_LIMITER: RateLimit;
 };
 
 type Variables = {
@@ -17,6 +19,15 @@ const SESSION_TTL_REMEMBER = 60 * 60 * 24 * 30; // 30 days
 
 export class AuthController {
   static async login(c: Context<{ Bindings: Bindings }>) {
+    const ip = c.req.header("CF-Connecting-IP") ?? "unknown";
+    const { success: withinLimit } = await c.env.AUTH_RATE_LIMITER.limit({ key: ip });
+    if (!withinLimit) {
+      return c.json(
+        { success: false, message: "Trop de tentatives. Réessayez dans quelques instants." },
+        429
+      );
+    }
+
     const body = await c.req.json().catch(() => null);
     const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body?.password === "string" ? body.password : "";
@@ -40,10 +51,22 @@ export class AuthController {
       c.env.JWT_SECRET
     );
 
+    setCookie(c, AUTH_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: true,
+      // The admin dashboard (*.pages.dev) and this API (*.workers.dev) are on different
+      // registrable domains, so the cookie must be sent cross-site: SameSite=None is required
+      // for it to be attached at all. CSRF exposure from this is mitigated by the strict
+      // origin allowlist in the CORS config (see index.ts), which rejects the preflight for
+      // any non-allowlisted origin before a state-changing request can be sent.
+      sameSite: "None",
+      path: "/",
+      ...(remember ? { maxAge: ttl } : {}),
+    });
+
     return c.json({
       success: true,
       data: {
-        token,
         expiresAt: (now + ttl) * 1000,
         user: {
           id: user.id,
@@ -61,6 +84,7 @@ export class AuthController {
   }
 
   static async logout(c: Context) {
+    deleteCookie(c, AUTH_COOKIE_NAME, { path: "/" });
     return c.json({ success: true, message: "Déconnecté" });
   }
 }

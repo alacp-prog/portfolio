@@ -5,6 +5,7 @@ import { requireAuth, type AuthUser } from "../middleware/auth.middleware";
 type Bindings = {
   portfolio_db: D1Database;
   JWT_SECRET: string;
+  AUTH_RATE_LIMITER: RateLimit;
 };
 
 type Variables = {
