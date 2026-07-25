@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Smile } from 'lucide-react'
@@ -5,6 +6,7 @@ import logoIcon from '../assets/pac/logo-white.png'
 import useT from '../hooks/useT'
 import Seo from '../components/Seo'
 import { cardClass, eyebrowClass, sectionTitleClass, fadeUp, stagger, floatAnim, pulseAnim, circuitHeroBg } from '../lib/ui'
+import { getProjects } from '../services/api'
 
 const MotionLink = motion.create(Link)
 
@@ -35,36 +37,6 @@ const SERVICES = [
   { icon: '●●●', fr: 'Branding & identité', en: 'Branding & identity', fr_d: 'Logos, chartes graphiques et identités visuelles mémorables.', en_d: 'Logos, brand guidelines and memorable visual identities.' },
 ]
 
-const PROJECTS = [
-  {
-    placeholder_fr: 'Capture — plateforme Atlas Immobilier',
-    placeholder_en: 'Screenshot — Atlas Immobilier platform',
-    category_fr: 'Plateforme web',
-    category_en: 'Web platform',
-    name: 'Atlas Immobilier',
-    fr: 'Portail immobilier — +120% de leads en 6 mois.',
-    en: 'Real-estate portal — +120% leads in 6 months.',
-  },
-  {
-    placeholder_fr: 'Écrans — app Karavan',
-    placeholder_en: 'Screens — Karavan app',
-    category_fr: 'App mobile',
-    category_en: 'Mobile app',
-    name: 'Karavan',
-    fr: 'App de covoiturage — 15 000 téléchargements au lancement.',
-    en: 'Carpooling app — 15,000 downloads at launch.',
-  },
-  {
-    placeholder_fr: 'Boutique — Nespera',
-    placeholder_en: 'Store — Nespera',
-    category_fr: 'E-commerce',
-    category_en: 'E-commerce',
-    name: 'Nespera',
-    fr: 'Boutique cosmétiques — +85% de ventes la première année.',
-    en: 'Cosmetics store — +85% sales in year one.',
-  },
-]
-
 const DISCIPLINES = [
   {
     key: 'design',
@@ -90,6 +62,30 @@ const DISCIPLINES = [
 
 export default function Home({ lang, showStats = true }) {
   const t = useT(lang)
+  const [projects, setProjects] = useState([])
+  const [projectsLoading, setProjectsLoading] = useState(true)
+  const [projectsError, setProjectsError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    getProjects()
+      .then((res) => {
+        if (!cancelled) setProjects(res.data ?? [])
+      })
+      .catch((err) => {
+        if (!cancelled) setProjectsError(err.message)
+      })
+      .finally(() => {
+        if (!cancelled) setProjectsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const recentProjects = projects.slice(0, 3)
 
   return (
     <>
@@ -285,36 +281,65 @@ export default function Home({ lang, showStats = true }) {
             </Link>
           </div>
 
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: '-80px' }}
-            className="grid grid-cols-3 gap-7 max-[900px]:grid-cols-1"
-          >
-            {PROJECTS.map((project) => (
-              <MotionLink
-                key={project.name}
-                to="/projets"
-                variants={fadeUp}
-                whileHover={{ y: -6 }}
-                className="flex flex-col overflow-hidden rounded-[20px] border border-white/10 bg-white/5 text-pac-ink"
-              >
-                <div className="flex h-[230px] items-center justify-center bg-white/6 px-6 text-center">
-                  <span className="font-heading text-[13px] font-semibold text-white/55">
-                    {t(project.placeholder_fr, project.placeholder_en)}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-2 p-[24px_26px]">
-                  <span className="font-heading text-xs font-semibold uppercase tracking-[1.5px] text-pac-cyan-light">
-                    {t(project.category_fr, project.category_en)}
-                  </span>
-                  <h3 className="m-0 font-heading text-[21px] font-bold">{project.name}</h3>
-                  <p className="m-0 text-sm text-white/65">{t(project.fr, project.en)}</p>
-                </div>
-              </MotionLink>
-            ))}
-          </motion.div>
+          {projectsLoading && (
+            <p className="py-10 text-center text-[15px] text-white/50">{t('Chargement des projets…', 'Loading projects…')}</p>
+          )}
+          {projectsError && (
+            <p className="py-10 text-center text-[15px] text-[#E0455A]">
+              {t('Impossible de charger les projets : ', 'Failed to load projects: ')}
+              {projectsError}
+            </p>
+          )}
+          {!projectsLoading && !projectsError && recentProjects.length === 0 && (
+            <p className="py-10 text-center text-[15px] text-white/50">
+              {t('Aucun projet pour le moment — revenez bientôt.', 'No projects yet — check back soon.')}
+            </p>
+          )}
+
+          {!projectsLoading && !projectsError && recentProjects.length > 0 && (
+            <motion.div
+              variants={stagger}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: '-80px' }}
+              className="grid grid-cols-3 gap-7 max-[900px]:grid-cols-1"
+            >
+              {recentProjects.map((project) => (
+                <MotionLink
+                  key={project.id}
+                  to="/projets"
+                  variants={fadeUp}
+                  whileHover={{ y: -6 }}
+                  className="flex flex-col overflow-hidden rounded-[20px] border border-white/10 bg-white/5 text-pac-ink"
+                >
+                  {project.image ? (
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-[230px] w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-[230px] items-center justify-center bg-white/6 px-6 text-center">
+                      <span className="font-heading text-[13px] font-semibold text-white/55">
+                        {t('Capture — ' + project.title, 'Screenshot — ' + project.title)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2 p-[24px_26px]">
+                    {project.category && (
+                      <span className="font-heading text-xs font-semibold uppercase tracking-[1.5px] text-pac-cyan-light">
+                        {project.category}
+                      </span>
+                    )}
+                    <h3 className="m-0 font-heading text-[21px] font-bold">{project.title}</h3>
+                    <p className="m-0 text-sm text-white/65">{project.description}</p>
+                  </div>
+                </MotionLink>
+              ))}
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -367,7 +392,7 @@ export default function Home({ lang, showStats = true }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ duration: 0.6 }}
-        className="px-8 pb-[110px]"
+        className="px-8 pb-[110px] pt-[50px]"
       >
         <div className="mx-auto flex max-w-[640px] flex-col items-center gap-4 text-center">
           <Smile aria-hidden="true" className="h-16 w-16 text-pac-cyan" strokeWidth={1.25} />

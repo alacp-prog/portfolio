@@ -85,7 +85,7 @@ export default function SiteNav({ lang, onLang }) {
               <span className="whitespace-nowrap font-heading text-[clamp(15px,1.5vw,19px)] font-bold tracking-[0.2px] text-pac-ink">
                 Pix.Ala.Code
               </span>
-              <span className="hidden whitespace-nowrap font-heading text-[11px] font-medium text-white/55 lg:block">
+              <span className="block whitespace-nowrap font-heading text-[clamp(9px,2vw,11px)] font-medium text-white/55">
                 {lang === 'en' ? 'Your digital success, our code.' : 'Votre succès numérique, notre code.'}
               </span>
             </span>
