@@ -8,7 +8,6 @@ const NAV_LINKS = [
   { key: 'studio', href: '/studio', fr: 'Le Studio', en: 'Studio' },
   { key: 'services', href: '/services', fr: 'Services', en: 'Services' },
   { key: 'projets', href: '/projets', fr: 'Projets', en: 'Work' },
-  { key: 'about', href: '/about', fr: 'À propos', en: 'About' },
   { key: 'contact', href: '/contact', fr: 'Contact', en: 'Contact' },
 ]
 

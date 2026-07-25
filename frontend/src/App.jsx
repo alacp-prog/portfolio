@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from 'framer-motion'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import SiteNav from './components/SiteNav'
 import SiteFooter from './components/SiteFooter'
 import Home from './pages/Home'
 import Studio from './pages/Studio'
 import Services from './pages/Services'
 import Projets from './pages/Projets'
-import About from './pages/About'
 import Contact from './pages/Contact'
 import NotFound from './pages/NotFound'
+import { organizationJsonLd, websiteJsonLd } from './lib/seo'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -37,7 +38,6 @@ function AnimatedRoutes({ lang }) {
           <Route path="/studio" element={<Studio lang={lang} />} />
           <Route path="/services" element={<Services lang={lang} />} />
           <Route path="/projets" element={<Projets lang={lang} />} />
-          <Route path="/about" element={<About lang={lang} />} />
           <Route path="/contact" element={<Contact lang={lang} />} />
           <Route path="*" element={<NotFound lang={lang} />} />
         </Routes>
@@ -55,10 +55,6 @@ function App() {
     }
   })
 
-  useEffect(() => {
-    document.documentElement.lang = lang
-  }, [lang])
-
   const changeLang = (l) => {
     try {
       localStorage.setItem('pac_lang', l)
@@ -70,6 +66,11 @@ function App() {
 
   return (
     <MotionConfig reducedMotion="user">
+      <Helmet>
+        <html lang={lang} />
+        <script type="application/ld+json">{JSON.stringify(organizationJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(websiteJsonLd)}</script>
+      </Helmet>
       <BrowserRouter>
         <ScrollToTop />
         <a

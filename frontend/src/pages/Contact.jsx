@@ -1,9 +1,21 @@
 import { useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { MessagesSquare } from 'lucide-react'
+import { MessagesSquare, CircleUser } from 'lucide-react'
 import useT from '../hooks/useT'
+import Seo from '../components/Seo'
+import { breadcrumbJsonLd } from '../lib/seo'
 import { eyebrowClass, circuitHeroBg, pulseAnim } from '../lib/ui'
 import { submitContact } from '../services/api'
+import { PhoneIcon, WhatsAppIcon, FacebookIcon, LinkedInIcon, InstagramIcon, GmailIcon } from '../components/BrandIcons'
+
+const CONTACT_CHANNELS = [
+  { key: 'phone', fr: 'Téléphone', en: 'Phone', href: 'tel:+212661234567', Icon: PhoneIcon },
+  { key: 'whatsapp', fr: 'WhatsApp', en: 'WhatsApp', href: 'https://wa.me/212661234567', Icon: WhatsAppIcon },
+  { key: 'facebook', fr: 'Facebook', en: 'Facebook', href: 'https://www.facebook.com/pixalacode', Icon: FacebookIcon },
+  { key: 'linkedin', fr: 'LinkedIn', en: 'LinkedIn', href: 'https://www.linkedin.com/company/pixalacode', Icon: LinkedInIcon },
+  { key: 'instagram', fr: 'Instagram', en: 'Instagram', href: 'https://www.instagram.com/pixalacode', Icon: InstagramIcon },
+  { key: 'gmail', fr: 'Gmail', en: 'Gmail', href: 'https://mail.google.com/mail/?view=cm&fs=1&to=hello@pixalacode.com', Icon: GmailIcon },
+]
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -119,7 +131,21 @@ export default function Contact({ lang }) {
   }
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-screen bg-pac-navy-950 outline-none">
+    <>
+      <Seo
+        lang={lang}
+        title={t('Contact', 'Contact')}
+        description={t(
+          'Parlons de votre projet web ou mobile. Contactez Pix.Ala.Code — réponse sous 48h, devis détaillé sous une semaine.',
+          "Let's talk about your web or mobile project. Contact Pix.Ala.Code — reply within 48h, detailed quote within a week."
+        )}
+        path="/contact"
+        jsonLd={breadcrumbJsonLd([
+          { name: t('Accueil', 'Home'), path: '/' },
+          { name: t('Contact', 'Contact'), path: '/contact' },
+        ])}
+      />
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-pac-navy-950 outline-none">
       <section aria-label={t('Contact', 'Contact')} className="relative overflow-hidden px-8 pb-[50px] pt-[170px]" style={circuitHeroBg}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -281,22 +307,33 @@ export default function Contact({ lang }) {
           <div className="flex flex-col gap-6">
             <motion.div
               {...fadeInUp(reduce)}
-              className="relative flex flex-col gap-6 overflow-hidden rounded-[24px] p-[40px_36px]"
+              className="relative flex flex-col gap-6 overflow-hidden rounded-[28px] p-[40px_36px] text-center"
               style={{ background: 'linear-gradient(160deg,#152A57,#0D1730)' }}
             >
               <motion.span aria-hidden="true" {...pulseAnim(3)} className="absolute right-[26px] top-[22px] h-3 w-3 rounded-full bg-pac-cyan" />
-              <h2 className="m-0 font-heading text-[22px] font-bold text-white">{t('Coordonnées', 'Contact details')}</h2>
+              <h2 className="m-0 flex items-center justify-center gap-3 font-heading text-[22px] font-bold text-white">
+                <CircleUser aria-hidden="true" className="h-14 w-14 text-pac-cyan-light" strokeWidth={1.25} />
+                {t('Coordonnées', 'Contact details')}
+              </h2>
 
-              <div className="flex flex-col gap-1.5">
-                <span className="font-heading text-xs font-semibold uppercase tracking-[1.5px] text-pac-cyan">Email</span>
-                <a href="mailto:hello@pixalacode.com" className="text-[15px] text-white transition-colors hover:text-pac-cyan">
-                  hello@pixalacode.com
-                </a>
+              <div className="flex flex-wrap justify-center gap-3">
+                {CONTACT_CHANNELS.map(({ key, fr, en, href, Icon }) => {
+                  const external = href.startsWith('http')
+                  return (
+                    <a
+                      key={key}
+                      href={href}
+                      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                      aria-label={t(fr, en)}
+                      title={t(fr, en)}
+                      className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 text-pac-ink transition-colors hover:bg-pac-cyan hover:text-pac-navy-950"
+                    >
+                      <Icon className="h-[18px] w-[18px]" />
+                    </a>
+                  )
+                })}
               </div>
-              <div className="flex flex-col gap-1.5">
-                <span className="font-heading text-xs font-semibold uppercase tracking-[1.5px] text-pac-cyan">{t('Téléphone', 'Phone')}</span>
-                <span className="text-[15px] text-white">+212 6 61 23 45 67</span>
-              </div>
+
               <div className="flex flex-col gap-1.5">
                 <span className="font-heading text-xs font-semibold uppercase tracking-[1.5px] text-pac-cyan">{t('Adresse', 'Address')}</span>
                 <span className="text-[15px] leading-[1.6] text-white">
@@ -324,5 +361,6 @@ export default function Contact({ lang }) {
         </div>
       </section>
     </main>
+    </>
   )
 }

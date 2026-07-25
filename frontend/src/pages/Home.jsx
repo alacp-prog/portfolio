@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { Smile } from 'lucide-react'
 import logoIcon from '../assets/pac/logo-white.png'
 import useT from '../hooks/useT'
+import Seo from '../components/Seo'
 import { cardClass, eyebrowClass, sectionTitleClass, fadeUp, stagger, floatAnim, pulseAnim, circuitHeroBg } from '../lib/ui'
 
 const MotionLink = motion.create(Link)
@@ -90,7 +92,18 @@ export default function Home({ lang, showStats = true }) {
   const t = useT(lang)
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-screen bg-pac-navy-950 outline-none">
+    <>
+      <Seo
+        lang={lang}
+        home
+        title={t('Studio de développement web & mobile sur mesure', 'Custom web & mobile development studio')}
+        description={t(
+          'Pix.Ala.Code conçoit et développe des sites web, applications mobiles et identités visuelles sur mesure pour PME et startups, de Casablanca au monde entier.',
+          'Pix.Ala.Code designs and builds custom websites, mobile apps and visual identities for SMEs and startups, from Casablanca to the world.'
+        )}
+        path="/"
+      />
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-pac-navy-950 outline-none">
       {/* Hero */}
       <section
         aria-label={t('Introduction', 'Introduction')}
@@ -349,28 +362,23 @@ export default function Home({ lang, showStats = true }) {
 
       {/* Testimonial */}
       <motion.section
-        aria-label={t('Témoignage client', 'Client testimonial')}
+        aria-label={t('Témoignages', 'Testimonials')}
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ duration: 0.6 }}
         className="px-8 pb-[110px]"
       >
-        <figure className="mx-auto flex max-w-[900px] flex-col gap-6 text-center">
-          <span aria-hidden="true" className="font-heading text-[64px]/[0.5] font-extrabold text-pac-cyan">&ldquo;</span>
-          <blockquote className="m-0 text-balance font-heading text-[26px]/[1.55] font-medium text-pac-ink">
+        <div className="mx-auto flex max-w-[640px] flex-col items-center gap-4 text-center">
+          <Smile aria-hidden="true" className="h-16 w-16 text-pac-cyan" strokeWidth={1.25} />
+          <span className={eyebrowClass}>{t('Témoignages', 'Testimonials')}</span>
+          <p className="m-0 text-[17px] leading-[1.75] text-white/65">
             {t(
-              'Une équipe qui comprend le business autant que la technique. Notre plateforme a été livrée en avance, et le résultat dépasse nos attentes.',
-              'A team that understands business as much as tech. Our platform shipped ahead of schedule and exceeded our expectations.'
+              'Nous préparons actuellement nos premiers projets clients. Revenez prochainement pour découvrir les témoignages et retours d’expérience de nos partenaires.',
+              "We're currently preparing our first client projects. Check back soon to discover testimonials and feedback from our partners."
             )}
-          </blockquote>
-          <figcaption className="flex flex-col items-center gap-1">
-            <span className="font-heading text-[15px] font-bold text-pac-ink">Sara El Amrani</span>
-            <span className="text-[13.5px] text-white/50">
-              {t('Directrice Marketing, Atlas Immobilier', 'Marketing Director, Atlas Immobilier')}
-            </span>
-          </figcaption>
-        </figure>
+          </p>
+        </div>
       </motion.section>
 
       {/* CTA */}
@@ -406,5 +414,6 @@ export default function Home({ lang, showStats = true }) {
         </motion.div>
       </section>
     </main>
+    </>
   )
 }

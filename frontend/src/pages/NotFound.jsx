@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { CompassIcon } from 'lucide-react'
 import useT from '../hooks/useT'
+import Seo from '../components/Seo'
 import { circuitHeroBg } from '../lib/ui'
 
 const MotionLink = motion.create(Link)
@@ -10,7 +11,18 @@ export default function NotFound({ lang }) {
   const t = useT(lang)
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-screen bg-pac-navy-950 outline-none">
+    <>
+      <Seo
+        lang={lang}
+        title={t('Page introuvable', 'Page not found')}
+        description={t(
+          "Cette page n'existe pas ou plus. Revenez à l'accueil de Pix.Ala.Code ou explorez nos réalisations.",
+          "This page doesn't exist. Head back to the Pix.Ala.Code homepage or browse our work."
+        )}
+        path="/404"
+        noindex
+      />
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-pac-navy-950 outline-none">
       <section
         aria-label={t('Page introuvable', 'Page not found')}
         className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-8 py-[140px] text-center"
@@ -62,5 +74,6 @@ export default function NotFound({ lang }) {
         </motion.div>
       </section>
     </main>
+    </>
   )
 }

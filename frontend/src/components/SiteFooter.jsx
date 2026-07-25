@@ -28,7 +28,7 @@ export default function SiteFooter({ lang }) {
         <div className="grid grid-cols-[1.4fr_1fr_1fr_1.2fr] items-start gap-12 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1 max-[560px]:text-center">
           <div className="flex flex-col gap-[18px] max-[560px]:items-center">
             <Link to="/">
-              <img src={logoWhite} alt="Pix.Ala.Code" className="block w-[170px]" />
+              <img src={logoWhite} alt="Pix.Ala.Code" loading="lazy" decoding="async" className="block w-[170px]" />
             </Link>
             <p className="m-0 max-w-[300px] text-sm leading-[1.7] text-pac-muted">
               {t(

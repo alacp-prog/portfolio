@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import useT from '../hooks/useT'
+import Seo from '../components/Seo'
+import { breadcrumbJsonLd } from '../lib/seo'
 import { cardClass, eyebrowClass, sectionTitleClass, fadeUp, stagger, circuitHeroBg } from '../lib/ui'
 import { getServices } from '../services/api'
 
@@ -72,7 +74,21 @@ export default function Services({ lang }) {
   }, [])
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-screen bg-pac-navy-950 outline-none">
+    <>
+      <Seo
+        lang={lang}
+        title={t('Services & tarifs', 'Services & pricing')}
+        description={t(
+          'Design UI/UX, développement web et mobile, branding : découvrez nos services et nos formules tarifaires, du site vitrine à la plateforme sur mesure.',
+          'UI/UX design, web & mobile development, branding: explore our services and pricing plans, from showcase sites to custom platforms.'
+        )}
+        path="/services"
+        jsonLd={breadcrumbJsonLd([
+          { name: t('Accueil', 'Home'), path: '/' },
+          { name: t('Services', 'Services'), path: '/services' },
+        ])}
+      />
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-pac-navy-950 outline-none">
       <section aria-label={t('Services', 'Services')} className="relative overflow-hidden px-8 pb-[80px] pt-[170px] text-center" style={circuitHeroBg}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -187,5 +203,6 @@ export default function Services({ lang }) {
         </div>
       </section>
     </main>
+    </>
   )
 }
