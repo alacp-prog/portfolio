@@ -6,6 +6,7 @@ import useT from '../hooks/useT'
 import Seo from '../components/Seo'
 import { breadcrumbJsonLd } from '../lib/seo'
 import { eyebrowClass, sectionTitleClass, fadeUp, stagger, circuitHeroBg, placeholderClass } from '../lib/ui'
+import { getCategoryLabel, sortCategories } from '../lib/categories'
 import { getProjects, getSkills } from '../services/api'
 
 const MotionLink = motion.create(Link)
@@ -66,7 +67,7 @@ export default function Projets({ lang }) {
   }, [skillsRetryToken])
 
   const categories = useMemo(
-    () => Array.from(new Set(projects.map((p) => p.category).filter(Boolean))),
+    () => sortCategories(Array.from(new Set(projects.map((p) => p.category).filter(Boolean)))),
     [projects]
   )
 
@@ -129,7 +130,7 @@ export default function Projets({ lang }) {
                   filter === key ? 'border-pac-cyan bg-pac-cyan text-pac-navy-950' : 'border-white/20 bg-transparent text-white'
                 }`}
               >
-                {key === 'all' ? t('Tous', 'All') : key}
+                {key === 'all' ? t('Tous', 'All') : getCategoryLabel(key, t)}
               </button>
             ))}
           </div>
@@ -178,7 +179,7 @@ export default function Projets({ lang }) {
                   <div className="flex items-center justify-between gap-3">
                     {project.category && (
                       <span className="font-heading text-xs font-semibold uppercase tracking-[1.5px] text-pac-cyan-light">
-                        {project.category}
+                        {getCategoryLabel(project.category, t)}
                       </span>
                     )}
                     {project.year && <span className="text-xs font-semibold text-white/40">{project.year}</span>}

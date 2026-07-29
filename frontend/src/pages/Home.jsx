@@ -6,6 +6,7 @@ import logoIcon from '../assets/pac/logo-white.png'
 import useT from '../hooks/useT'
 import Seo from '../components/Seo'
 import { cardClass, eyebrowClass, sectionTitleClass, fadeUp, stagger, floatAnim, pulseAnim, circuitHeroBg } from '../lib/ui'
+import { getCategoryLabel } from '../lib/categories'
 import { getProjects } from '../services/api'
 
 const MotionLink = motion.create(Link)
@@ -330,7 +331,7 @@ export default function Home({ lang, showStats = true }) {
                   <div className="flex flex-col gap-2 p-[24px_26px]">
                     {project.category && (
                       <span className="font-heading text-xs font-semibold uppercase tracking-[1.5px] text-pac-cyan-light">
-                        {project.category}
+                        {getCategoryLabel(project.category, t)}
                       </span>
                     )}
                     <h3 className="m-0 font-heading text-[21px] font-bold">{project.title}</h3>

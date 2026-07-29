@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 const PAGE_TITLES = {
   '/dashboard/projects': 'Projets',
   '/dashboard/skills': 'Compétences',
+  '/dashboard/services': 'Services',
   '/messages': 'Messages',
   '/users': 'Utilisateurs',
 }

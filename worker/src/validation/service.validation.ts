@@ -2,12 +2,16 @@ export interface CreateServiceInput {
   title: string;
   description: string;
   icon?: string;
+  visible: boolean;
+  isNew: boolean;
 }
 
 export interface UpdateServiceInput {
   title?: string;
   description?: string;
   icon?: string;
+  visible?: boolean;
+  isNew?: boolean;
 }
 
 export function validateCreateService(data: unknown): {
@@ -36,6 +40,14 @@ export function validateCreateService(data: unknown): {
     }
   }
 
+  if (input.visible !== undefined && typeof input.visible !== "boolean") {
+    errors.push("visible must be a boolean");
+  }
+
+  if (input.isNew !== undefined && typeof input.isNew !== "boolean") {
+    errors.push("isNew must be a boolean");
+  }
+
   if (errors.length > 0) {
     return { valid: false, errors };
   }
@@ -47,6 +59,8 @@ export function validateCreateService(data: unknown): {
       title: (input.title as string).trim(),
       description: (input.description as string).trim(),
       icon: input.icon ? (input.icon as string).trim() : undefined,
+      visible: typeof input.visible === "boolean" ? input.visible : true,
+      isNew: typeof input.isNew === "boolean" ? input.isNew : false,
     },
   };
 }
@@ -64,7 +78,11 @@ export function validateUpdateService(data: unknown): {
   }
 
   const hasFields =
-    input.title !== undefined || input.description !== undefined || input.icon !== undefined;
+    input.title !== undefined ||
+    input.description !== undefined ||
+    input.icon !== undefined ||
+    input.visible !== undefined ||
+    input.isNew !== undefined;
 
   if (!hasFields) {
     return { valid: false, errors: ["At least one field is required for update"] };
@@ -88,6 +106,14 @@ export function validateUpdateService(data: unknown): {
     }
   }
 
+  if (input.visible !== undefined && typeof input.visible !== "boolean") {
+    errors.push("visible must be a boolean");
+  }
+
+  if (input.isNew !== undefined && typeof input.isNew !== "boolean") {
+    errors.push("isNew must be a boolean");
+  }
+
   if (errors.length > 0) {
     return { valid: false, errors };
   }
@@ -99,6 +125,8 @@ export function validateUpdateService(data: unknown): {
       title: input.title ? (input.title as string).trim() : undefined,
       description: input.description ? (input.description as string).trim() : undefined,
       icon: input.icon ? (input.icon as string).trim() : undefined,
+      visible: typeof input.visible === "boolean" ? input.visible : undefined,
+      isNew: typeof input.isNew === "boolean" ? input.isNew : undefined,
     },
   };
 }

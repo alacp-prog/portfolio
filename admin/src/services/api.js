@@ -78,6 +78,22 @@ export function deleteSkill(id) {
   return apiFetch(`/skills/${id}`, { method: 'DELETE' })
 }
 
+export function getServices() {
+  return apiFetch('/services')
+}
+
+export function createService(data) {
+  return apiFetch('/services', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export function updateService(id, data) {
+  return apiFetch(`/services/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+}
+
+export function deleteService(id) {
+  return apiFetch(`/services/${id}`, { method: 'DELETE' })
+}
+
 export function getUsers() {
   return apiFetch('/users')
 }

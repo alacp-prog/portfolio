@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NavLink } from 'react-router-dom'
-import { SquaresFour, Sparkle, Envelope, Users, ArrowLeft, SignOut, X } from '@phosphor-icons/react'
+import { SquaresFour, Sparkle, Wrench, Envelope, Users, ArrowLeft, SignOut, X } from '@phosphor-icons/react'
 import { overlayVariants } from '../lib/motion'
 import logo from '../assets/logo-white.png'
 
@@ -9,6 +9,7 @@ function getNavItems(role) {
   const items = [
     { to: '/dashboard/projects', label: 'Projets', icon: SquaresFour },
     { to: '/dashboard/skills', label: 'Compétences', icon: Sparkle },
+    { to: '/dashboard/services', label: 'Services', icon: Wrench },
     { to: '/messages', label: 'Messages', icon: Envelope },
   ]
   if (role === 'admin') {

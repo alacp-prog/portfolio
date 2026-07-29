@@ -4,8 +4,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { WarningCircle } from '@phosphor-icons/react'
 import ProjectsPanel from './ProjectsPanel'
 import SkillsPanel from './SkillsPanel'
+import ServicesPanel from './ServicesPanel'
 import ProjectFormDrawer from './ProjectFormDrawer'
 import SkillFormDrawer from './SkillFormDrawer'
+import ServiceFormDrawer from './ServiceFormDrawer'
 import { fadeInUp } from '../lib/motion'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -17,9 +19,13 @@ import {
   createSkill,
   updateSkill,
   deleteSkill,
+  getServices,
+  createService,
+  updateService,
+  deleteService,
 } from '../services/api'
 
-const VALID_TABS = ['projects', 'skills']
+const VALID_TABS = ['projects', 'skills', 'services']
 
 export default function DashboardPage() {
   const { tab } = useParams()
@@ -28,11 +34,13 @@ export default function DashboardPage() {
 
   const [projects, setProjects] = useState([])
   const [skills, setSkills] = useState([])
+  const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
 
   const [projectDrawer, setProjectDrawer] = useState(null) // null | 'new' | project object
   const [skillDrawer, setSkillDrawer] = useState(null) // null | 'new' | skill object
+  const [serviceDrawer, setServiceDrawer] = useState(null) // null | 'new' | service object
   const [saving, setSaving] = useState(false)
   const [formErrors, setFormErrors] = useState(null)
 
@@ -42,9 +50,10 @@ export default function DashboardPage() {
 
   async function loadAll() {
     try {
-      const [projectsRes, skillsRes] = await Promise.all([getProjects(), getSkills()])
+      const [projectsRes, skillsRes, servicesRes] = await Promise.all([getProjects(), getSkills(), getServices()])
       setProjects(projectsRes.data ?? [])
       setSkills(skillsRes.data ?? [])
+      setServices(servicesRes.data ?? [])
       setLoadError(null)
     } catch (err) {
       setLoadError(err.message)
@@ -109,6 +118,34 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleSaveService(data) {
+    setSaving(true)
+    setFormErrors(null)
+    try {
+      if (serviceDrawer && serviceDrawer !== 'new') {
+        await updateService(serviceDrawer.id, data)
+      } else {
+        await createService(data)
+      }
+      await loadAll()
+      setServiceDrawer(null)
+    } catch (err) {
+      setFormErrors(err.errors ?? [err.message])
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDeleteService(service) {
+    if (!window.confirm(`Supprimer le service "${service.title}" ?`)) return
+    try {
+      await deleteService(service.id)
+      await loadAll()
+    } catch (err) {
+      setLoadError(err.message)
+    }
+  }
+
   if (!VALID_TABS.includes(tab)) {
     return <Navigate to="/dashboard/projects" replace />
   }
@@ -116,6 +153,7 @@ export default function DashboardPage() {
   function closeAnyPanel() {
     setProjectDrawer(null)
     setSkillDrawer(null)
+    setServiceDrawer(null)
     setFormErrors(null)
   }
 
@@ -158,6 +196,17 @@ export default function DashboardPage() {
               onDelete={handleDeleteSkill}
             />
           )}
+
+          {tab === 'services' && (
+            <ServicesPanel
+              services={services}
+              loading={loading}
+              canEdit={canEdit}
+              onNew={() => setServiceDrawer('new')}
+              onEdit={(s) => setServiceDrawer(s)}
+              onDelete={handleDeleteService}
+            />
+          )}
         </motion.div>
       </AnimatePresence>
 
@@ -177,6 +226,16 @@ export default function DashboardPage() {
             key={skillDrawer === 'new' ? 'new-skill' : skillDrawer.id}
             skill={skillDrawer === 'new' ? null : skillDrawer}
             onSave={handleSaveSkill}
+            onCancel={closeAnyPanel}
+            saving={saving}
+            errors={formErrors}
+          />
+        )}
+        {serviceDrawer !== null && (
+          <ServiceFormDrawer
+            key={serviceDrawer === 'new' ? 'new-service' : serviceDrawer.id}
+            service={serviceDrawer === 'new' ? null : serviceDrawer}
+            onSave={handleSaveService}
             onCancel={closeAnyPanel}
             saving={saving}
             errors={formErrors}

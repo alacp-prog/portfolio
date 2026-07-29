@@ -16,18 +16,36 @@ export class ServiceRepository {
       .first();
   }
 
-  async create(data: { title: string; description: string; icon?: string }) {
+  async create(data: {
+    title: string;
+    description: string;
+    icon?: string;
+    visible: boolean;
+    isNew: boolean;
+  }) {
     return await this.db
       .prepare(
-        "INSERT INTO services (title, description, icon) VALUES (?, ?, ?)"
+        "INSERT INTO services (title, description, icon, visible, is_new) VALUES (?, ?, ?, ?, ?)"
       )
-      .bind(data.title, data.description, data.icon ?? null)
+      .bind(
+        data.title,
+        data.description,
+        data.icon ?? null,
+        data.visible ? 1 : 0,
+        data.isNew ? 1 : 0
+      )
       .run();
   }
 
   async update(
     id: number,
-    data: { title?: string; description?: string; icon?: string }
+    data: {
+      title?: string;
+      description?: string;
+      icon?: string;
+      visible?: boolean;
+      isNew?: boolean;
+    }
   ) {
     const fields: string[] = [];
     const values: unknown[] = [];
@@ -43,6 +61,14 @@ export class ServiceRepository {
     if (data.icon !== undefined) {
       fields.push("icon = ?");
       values.push(data.icon);
+    }
+    if (data.visible !== undefined) {
+      fields.push("visible = ?");
+      values.push(data.visible ? 1 : 0);
+    }
+    if (data.isNew !== undefined) {
+      fields.push("is_new = ?");
+      values.push(data.isNew ? 1 : 0);
     }
 
     if (fields.length === 0) return null;

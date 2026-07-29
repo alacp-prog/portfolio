@@ -19,13 +19,21 @@ export class ServiceService {
     title: string;
     description: string;
     icon?: string;
+    visible: boolean;
+    isNew: boolean;
   }) {
     return await this.repository.create(data);
   }
 
   async updateService(
     id: number,
-    data: { title?: string; description?: string; icon?: string }
+    data: {
+      title?: string;
+      description?: string;
+      icon?: string;
+      visible?: boolean;
+      isNew?: boolean;
+    }
   ) {
     return await this.repository.update(id, data);
   }
