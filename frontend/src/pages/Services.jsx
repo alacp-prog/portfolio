@@ -1,18 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, Fragment } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronDown } from 'lucide-react'
 import useT from '../hooks/useT'
 import Seo from '../components/Seo'
 import { breadcrumbJsonLd } from '../lib/seo'
 import { eyebrowClass, fadeUp, stagger, circuitHeroBg } from '../lib/ui'
 import { getCategories } from '../services/api'
-import ServiceCategoryModal from '../components/ServiceCategoryModal'
+import CategoryServicesPanel from '../components/CategoryServicesPanel'
 
 export default function Services({ lang }) {
   const t = useT(lang)
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [expandedSlug, setExpandedSlug] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -93,42 +94,72 @@ export default function Services({ lang }) {
 
         {!loading && !error && categoryCards.length > 0 && (
           <motion.div
+            layout
             variants={stagger}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: '-80px' }}
             className="mx-auto grid max-w-[1240px] grid-cols-3 gap-5 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1"
           >
-            {categoryCards.map((c) => (
-              <motion.button
-                key={c.id}
-                type="button"
-                variants={fadeUp}
-                whileHover={{ y: -5 }}
-                onClick={() => setSelectedCategory(c)}
-                className="relative flex flex-col items-start gap-2 rounded-[16px] border border-white/10 bg-white/5 p-[22px] text-left transition-colors hover:border-white/25 hover:bg-white/[0.07]"
-              >
-                {Boolean(c.is_new) && (
-                  <span className="absolute right-4 top-0 -translate-y-1/2 rounded-full bg-pac-cyan px-3 py-1 font-heading text-[11.5px] font-bold uppercase tracking-[0.5px] text-pac-navy-950 shadow-md">
-                    {t('Nouveau', 'New')}
-                  </span>
-                )}
-                <h3 className="m-0 font-heading text-[16.5px] font-bold text-pac-ink">{c.name}</h3>
-                {c.description && (
-                  <p className="m-0 line-clamp-2 text-[13.5px] leading-[1.6] text-white/60">{c.description}</p>
-                )}
-              </motion.button>
-            ))}
+            {categoryCards.map((c) => {
+              const active = expandedSlug === c.slug
+              return (
+                <Fragment key={c.id}>
+                  <motion.button
+                    layout
+                    type="button"
+                    variants={fadeUp}
+                    whileHover={{ y: -5 }}
+                    onClick={() => setExpandedSlug(active ? null : c.slug)}
+                    aria-expanded={active}
+                    className={`relative flex flex-col items-start gap-2 rounded-[16px] border p-[22px] text-left transition-colors ${
+                      active
+                        ? 'border-pac-cyan bg-pac-cyan/10'
+                        : 'border-white/10 bg-white/5 hover:border-white/25 hover:bg-white/[0.07]'
+                    }`}
+                  >
+                    {Boolean(c.is_new) && (
+                      <span className="absolute right-4 top-0 -translate-y-1/2 rounded-full bg-pac-cyan px-3 py-1 font-heading text-[11.5px] font-bold uppercase tracking-[0.5px] text-pac-navy-950 shadow-md">
+                        {t('Nouveau', 'New')}
+                      </span>
+                    )}
+                    <div className="flex w-full items-start justify-between gap-2">
+                      <h3 className={`m-0 font-heading text-[16.5px] font-bold ${active ? 'text-pac-cyan-light' : 'text-pac-ink'}`}>
+                        {c.name}
+                      </h3>
+                      <ChevronDown
+                        size={16}
+                        className={`mt-0.5 flex-none text-white/40 transition-transform duration-200 ${active ? 'rotate-180 text-pac-cyan' : ''}`}
+                      />
+                    </div>
+                    {c.description && (
+                      <p className="m-0 line-clamp-2 text-[13.5px] leading-[1.6] text-white/60">{c.description}</p>
+                    )}
+                  </motion.button>
+
+                  <AnimatePresence>
+                    {active && (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        className="col-span-full overflow-hidden"
+                      >
+                        <div className="pt-5">
+                          <CategoryServicesPanel category={c} t={t} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Fragment>
+              )
+            })}
           </motion.div>
         )}
       </section>
     </main>
-
-    <AnimatePresence>
-      {selectedCategory && (
-        <ServiceCategoryModal category={selectedCategory} onClose={() => setSelectedCategory(null)} t={t} />
-      )}
-    </AnimatePresence>
     </>
   )
 }
