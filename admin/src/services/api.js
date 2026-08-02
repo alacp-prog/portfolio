@@ -126,6 +126,22 @@ export function deleteSolution(id) {
   return apiFetch(`/solutions/${id}`, { method: 'DELETE' })
 }
 
+export function getServiceSolutions() {
+  return apiFetch('/service-solutions')
+}
+
+export function createServiceSolution(data) {
+  return apiFetch('/service-solutions', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export function updateServiceSolution(id, data) {
+  return apiFetch(`/service-solutions/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+}
+
+export function deleteServiceSolution(id) {
+  return apiFetch(`/service-solutions/${id}`, { method: 'DELETE' })
+}
+
 export function getUsers() {
   return apiFetch('/users')
 }

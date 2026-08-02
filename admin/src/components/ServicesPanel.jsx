@@ -15,6 +15,7 @@ import {
   CaretRight,
   Tag,
   Lightbulb,
+  LinkSimple,
   X,
 } from '@phosphor-icons/react'
 import { staggerContainer, staggerItem } from '../lib/motion'
@@ -153,6 +154,7 @@ export default function ServicesPanel({
   services,
   categoriesCount = 0,
   solutionsCount = 0,
+  relationsCount = 0,
   loading,
   onNew,
   onEdit,
@@ -200,6 +202,13 @@ export default function ServicesPanel({
           value={solutionsCount}
           loading={loading}
           onClick={() => navigate('/dashboard/solutions')}
+        />
+        <NavStatCard
+          icon={LinkSimple}
+          label="Relations"
+          value={relationsCount}
+          loading={loading}
+          onClick={() => navigate('/dashboard/relations')}
         />
       </div>
 

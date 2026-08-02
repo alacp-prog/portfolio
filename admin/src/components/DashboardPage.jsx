@@ -7,11 +7,13 @@ import SkillsPanel from './SkillsPanel'
 import ServicesPanel from './ServicesPanel'
 import CategoriesPanel from './CategoriesPanel'
 import SolutionsPanel from './SolutionsPanel'
+import ServiceSolutionsPanel from './ServiceSolutionsPanel'
 import ProjectFormDrawer from './ProjectFormDrawer'
 import SkillFormDrawer from './SkillFormDrawer'
 import ServiceFormDrawer from './ServiceFormDrawer'
 import CategoryFormDrawer from './CategoryFormDrawer'
 import SolutionFormDrawer from './SolutionFormDrawer'
+import ServiceSolutionFormDrawer from './ServiceSolutionFormDrawer'
 import { fadeInUp } from '../lib/motion'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -35,9 +37,13 @@ import {
   createSolution,
   updateSolution,
   deleteSolution,
+  getServiceSolutions,
+  createServiceSolution,
+  updateServiceSolution,
+  deleteServiceSolution,
 } from '../services/api'
 
-const VALID_TABS = ['projects', 'skills', 'services', 'categories', 'solutions']
+const VALID_TABS = ['projects', 'skills', 'services', 'categories', 'solutions', 'relations']
 
 export default function DashboardPage() {
   const { tab } = useParams()
@@ -49,6 +55,7 @@ export default function DashboardPage() {
   const [services, setServices] = useState([])
   const [categories, setCategories] = useState([])
   const [solutions, setSolutions] = useState([])
+  const [serviceSolutions, setServiceSolutions] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
 
@@ -57,6 +64,7 @@ export default function DashboardPage() {
   const [serviceDrawer, setServiceDrawer] = useState(null) // null | 'new' | service object
   const [categoryDrawer, setCategoryDrawer] = useState(null) // null | 'new' | category object
   const [solutionDrawer, setSolutionDrawer] = useState(null) // null | 'new' | solution object
+  const [relationDrawer, setRelationDrawer] = useState(null) // null | 'new' | relation object
   const [saving, setSaving] = useState(false)
   const [formErrors, setFormErrors] = useState(null)
 
@@ -66,18 +74,20 @@ export default function DashboardPage() {
 
   async function loadAll() {
     try {
-      const [projectsRes, skillsRes, servicesRes, categoriesRes, solutionsRes] = await Promise.all([
+      const [projectsRes, skillsRes, servicesRes, categoriesRes, solutionsRes, relationsRes] = await Promise.all([
         getProjects(),
         getSkills(),
         getServices(),
         getCategories(),
         getSolutions(),
+        getServiceSolutions(),
       ])
       setProjects(projectsRes.data ?? [])
       setSkills(skillsRes.data ?? [])
       setServices(servicesRes.data ?? [])
       setCategories(categoriesRes.data ?? [])
       setSolutions(solutionsRes.data ?? [])
+      setServiceSolutions(relationsRes.data ?? [])
       setLoadError(null)
     } catch (err) {
       setLoadError(err.message)
@@ -226,6 +236,34 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleSaveRelation(data) {
+    setSaving(true)
+    setFormErrors(null)
+    try {
+      if (relationDrawer && relationDrawer !== 'new') {
+        await updateServiceSolution(relationDrawer.id, data)
+      } else {
+        await createServiceSolution(data)
+      }
+      await loadAll()
+      setRelationDrawer(null)
+    } catch (err) {
+      setFormErrors(err.errors ?? [err.message])
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDeleteRelation(relation) {
+    if (!window.confirm(`Supprimer la relation "${relation.service_name} ↔ ${relation.solution_name}" ?`)) return
+    try {
+      await deleteServiceSolution(relation.id)
+      await loadAll()
+    } catch (err) {
+      setLoadError(err.message)
+    }
+  }
+
   if (!VALID_TABS.includes(tab)) {
     return <Navigate to="/dashboard/projects" replace />
   }
@@ -236,6 +274,7 @@ export default function DashboardPage() {
     setServiceDrawer(null)
     setCategoryDrawer(null)
     setSolutionDrawer(null)
+    setRelationDrawer(null)
     setFormErrors(null)
   }
 
@@ -284,6 +323,7 @@ export default function DashboardPage() {
               services={services}
               categoriesCount={categories.length}
               solutionsCount={solutions.length}
+              relationsCount={serviceSolutions.length}
               loading={loading}
               canEdit={canEdit}
               onNew={() => setServiceDrawer('new')}
@@ -311,6 +351,18 @@ export default function DashboardPage() {
               onNew={() => setSolutionDrawer('new')}
               onEdit={(s) => setSolutionDrawer(s)}
               onDelete={handleDeleteSolution}
+            />
+          )}
+
+          {tab === 'relations' && (
+            <ServiceSolutionsPanel
+              relations={serviceSolutions}
+              services={services}
+              loading={loading}
+              canEdit={canEdit}
+              onNew={() => setRelationDrawer('new')}
+              onEdit={(r) => setRelationDrawer(r)}
+              onDelete={handleDeleteRelation}
             />
           )}
         </motion.div>
@@ -363,6 +415,18 @@ export default function DashboardPage() {
             key={solutionDrawer === 'new' ? 'new-solution' : solutionDrawer.id}
             solution={solutionDrawer === 'new' ? null : solutionDrawer}
             onSave={handleSaveSolution}
+            onCancel={closeAnyPanel}
+            saving={saving}
+            errors={formErrors}
+          />
+        )}
+        {relationDrawer !== null && (
+          <ServiceSolutionFormDrawer
+            key={relationDrawer === 'new' ? 'new-relation' : relationDrawer.id}
+            relation={relationDrawer === 'new' ? null : relationDrawer}
+            services={services}
+            solutions={solutions}
+            onSave={handleSaveRelation}
             onCancel={closeAnyPanel}
             saving={saving}
             errors={formErrors}
