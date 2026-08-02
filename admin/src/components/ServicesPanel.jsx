@@ -14,6 +14,7 @@ import {
   CaretDown,
   CaretRight,
   Tag,
+  Lightbulb,
   X,
 } from '@phosphor-icons/react'
 import { staggerContainer, staggerItem } from '../lib/motion'
@@ -108,6 +109,37 @@ function ViewToggle({ mode, onChange }) {
   )
 }
 
+function NavStatCard({ icon: Icon, label, value, loading, onClick }) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      className="group flex w-full max-w-[300px] items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 text-left shadow-card transition-colors duration-150 hover:border-brand-blue/40 hover:bg-surface-subtle hover:shadow-popover cursor-pointer"
+    >
+      <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-brand-cyan/15 to-brand-blue/15 text-brand-blue transition-transform duration-150 group-hover:scale-105">
+        <Icon size={20} weight="bold" />
+      </span>
+      <div className="flex flex-1 flex-col gap-0.5">
+        <span className="text-[12px] font-semibold text-ink-400">{label}</span>
+        {loading ? (
+          <Skeleton className="h-[24px] w-10" />
+        ) : (
+          <span className="font-heading text-[22px] font-bold leading-none text-ink-900">
+            <AnimatedNumber value={value} />
+          </span>
+        )}
+      </div>
+      <CaretRight
+        size={16}
+        weight="bold"
+        className="flex-none text-ink-300 transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-brand-blue"
+      />
+    </motion.button>
+  )
+}
+
 function ServiceBadges({ service }) {
   return (
     <>
@@ -117,7 +149,16 @@ function ServiceBadges({ service }) {
   )
 }
 
-export default function ServicesPanel({ services, categoriesCount = 0, loading, onNew, onEdit, onDelete, canEdit = true }) {
+export default function ServicesPanel({
+  services,
+  categoriesCount = 0,
+  solutionsCount = 0,
+  loading,
+  onNew,
+  onEdit,
+  onDelete,
+  canEdit = true,
+}) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [visibilityFilter, setVisibilityFilter] = useState('all') // all | visible | hidden
@@ -145,32 +186,22 @@ export default function ServicesPanel({ services, categoriesCount = 0, loading, 
 
   return (
     <div>
-      <motion.button
-        type="button"
-        onClick={() => navigate('/dashboard/categories')}
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.98 }}
-        className="group mb-5 flex w-full max-w-[300px] items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 text-left shadow-card transition-colors duration-150 hover:border-brand-blue/40 hover:bg-surface-subtle hover:shadow-popover cursor-pointer"
-      >
-        <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-brand-cyan/15 to-brand-blue/15 text-brand-blue transition-transform duration-150 group-hover:scale-105">
-          <Tag size={20} weight="bold" />
-        </span>
-        <div className="flex flex-1 flex-col gap-0.5">
-          <span className="text-[12px] font-semibold text-ink-400">Catégories</span>
-          {loading ? (
-            <Skeleton className="h-[24px] w-10" />
-          ) : (
-            <span className="font-heading text-[22px] font-bold leading-none text-ink-900">
-              <AnimatedNumber value={categoriesCount} />
-            </span>
-          )}
-        </div>
-        <CaretRight
-          size={16}
-          weight="bold"
-          className="flex-none text-ink-300 transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-brand-blue"
+      <div className="mb-5 flex flex-wrap gap-4">
+        <NavStatCard
+          icon={Tag}
+          label="Catégories"
+          value={categoriesCount}
+          loading={loading}
+          onClick={() => navigate('/dashboard/categories')}
         />
-      </motion.button>
+        <NavStatCard
+          icon={Lightbulb}
+          label="Solutions"
+          value={solutionsCount}
+          loading={loading}
+          onClick={() => navigate('/dashboard/solutions')}
+        />
+      </div>
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <span className="flex-none text-[13.5px] text-ink-600">

@@ -110,6 +110,22 @@ export function deleteCategory(id) {
   return apiFetch(`/service-categories/${id}`, { method: 'DELETE' })
 }
 
+export function getSolutions() {
+  return apiFetch('/solutions')
+}
+
+export function createSolution(data) {
+  return apiFetch('/solutions', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export function updateSolution(id, data) {
+  return apiFetch(`/solutions/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+}
+
+export function deleteSolution(id) {
+  return apiFetch(`/solutions/${id}`, { method: 'DELETE' })
+}
+
 export function getUsers() {
   return apiFetch('/users')
 }

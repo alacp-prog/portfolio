@@ -6,10 +6,12 @@ import ProjectsPanel from './ProjectsPanel'
 import SkillsPanel from './SkillsPanel'
 import ServicesPanel from './ServicesPanel'
 import CategoriesPanel from './CategoriesPanel'
+import SolutionsPanel from './SolutionsPanel'
 import ProjectFormDrawer from './ProjectFormDrawer'
 import SkillFormDrawer from './SkillFormDrawer'
 import ServiceFormDrawer from './ServiceFormDrawer'
 import CategoryFormDrawer from './CategoryFormDrawer'
+import SolutionFormDrawer from './SolutionFormDrawer'
 import { fadeInUp } from '../lib/motion'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -29,9 +31,13 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  getSolutions,
+  createSolution,
+  updateSolution,
+  deleteSolution,
 } from '../services/api'
 
-const VALID_TABS = ['projects', 'skills', 'services', 'categories']
+const VALID_TABS = ['projects', 'skills', 'services', 'categories', 'solutions']
 
 export default function DashboardPage() {
   const { tab } = useParams()
@@ -42,6 +48,7 @@ export default function DashboardPage() {
   const [skills, setSkills] = useState([])
   const [services, setServices] = useState([])
   const [categories, setCategories] = useState([])
+  const [solutions, setSolutions] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
 
@@ -49,6 +56,7 @@ export default function DashboardPage() {
   const [skillDrawer, setSkillDrawer] = useState(null) // null | 'new' | skill object
   const [serviceDrawer, setServiceDrawer] = useState(null) // null | 'new' | service object
   const [categoryDrawer, setCategoryDrawer] = useState(null) // null | 'new' | category object
+  const [solutionDrawer, setSolutionDrawer] = useState(null) // null | 'new' | solution object
   const [saving, setSaving] = useState(false)
   const [formErrors, setFormErrors] = useState(null)
 
@@ -58,16 +66,18 @@ export default function DashboardPage() {
 
   async function loadAll() {
     try {
-      const [projectsRes, skillsRes, servicesRes, categoriesRes] = await Promise.all([
+      const [projectsRes, skillsRes, servicesRes, categoriesRes, solutionsRes] = await Promise.all([
         getProjects(),
         getSkills(),
         getServices(),
         getCategories(),
+        getSolutions(),
       ])
       setProjects(projectsRes.data ?? [])
       setSkills(skillsRes.data ?? [])
       setServices(servicesRes.data ?? [])
       setCategories(categoriesRes.data ?? [])
+      setSolutions(solutionsRes.data ?? [])
       setLoadError(null)
     } catch (err) {
       setLoadError(err.message)
@@ -188,6 +198,34 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleSaveSolution(data) {
+    setSaving(true)
+    setFormErrors(null)
+    try {
+      if (solutionDrawer && solutionDrawer !== 'new') {
+        await updateSolution(solutionDrawer.id, data)
+      } else {
+        await createSolution(data)
+      }
+      await loadAll()
+      setSolutionDrawer(null)
+    } catch (err) {
+      setFormErrors(err.errors ?? [err.message])
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDeleteSolution(solution) {
+    if (!window.confirm(`Supprimer la solution "${solution.name}" ?`)) return
+    try {
+      await deleteSolution(solution.id)
+      await loadAll()
+    } catch (err) {
+      setLoadError(err.message)
+    }
+  }
+
   if (!VALID_TABS.includes(tab)) {
     return <Navigate to="/dashboard/projects" replace />
   }
@@ -197,6 +235,7 @@ export default function DashboardPage() {
     setSkillDrawer(null)
     setServiceDrawer(null)
     setCategoryDrawer(null)
+    setSolutionDrawer(null)
     setFormErrors(null)
   }
 
@@ -244,6 +283,7 @@ export default function DashboardPage() {
             <ServicesPanel
               services={services}
               categoriesCount={categories.length}
+              solutionsCount={solutions.length}
               loading={loading}
               canEdit={canEdit}
               onNew={() => setServiceDrawer('new')}
@@ -260,6 +300,17 @@ export default function DashboardPage() {
               onNew={() => setCategoryDrawer('new')}
               onEdit={(c) => setCategoryDrawer(c)}
               onDelete={handleDeleteCategory}
+            />
+          )}
+
+          {tab === 'solutions' && (
+            <SolutionsPanel
+              solutions={solutions}
+              loading={loading}
+              canEdit={canEdit}
+              onNew={() => setSolutionDrawer('new')}
+              onEdit={(s) => setSolutionDrawer(s)}
+              onDelete={handleDeleteSolution}
             />
           )}
         </motion.div>
@@ -302,6 +353,16 @@ export default function DashboardPage() {
             key={categoryDrawer === 'new' ? 'new-category' : categoryDrawer.id}
             category={categoryDrawer === 'new' ? null : categoryDrawer}
             onSave={handleSaveCategory}
+            onCancel={closeAnyPanel}
+            saving={saving}
+            errors={formErrors}
+          />
+        )}
+        {solutionDrawer !== null && (
+          <SolutionFormDrawer
+            key={solutionDrawer === 'new' ? 'new-solution' : solutionDrawer.id}
+            solution={solutionDrawer === 'new' ? null : solutionDrawer}
+            onSave={handleSaveSolution}
             onCancel={closeAnyPanel}
             saving={saving}
             errors={formErrors}
