@@ -120,7 +120,7 @@ export default function SolutionFormDrawer({ solution, onSave, onCancel, saving,
         </Field>
 
         {priceType === 'fixed' && (
-          <Field label="Prix (€)">
+          <Field label="Prix (DT)">
             <Input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="990.00" />
           </Field>
         )}

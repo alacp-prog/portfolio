@@ -12,7 +12,7 @@ const GRID_COLS = '1.3fr 1fr 1fr 1.2fr 88px'
 function formatPrice(s) {
   if (s.price_type === 'fixed') {
     const value = Number(s.price)
-    return Number.isFinite(value) ? `${value.toFixed(2)} €` : '—'
+    return Number.isFinite(value) ? `${value.toFixed(2)} DT` : '—'
   }
   return 'Sur devis'
 }
