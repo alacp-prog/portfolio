@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Star } from 'lucide-react'
 import { fadeUp, stagger } from '../lib/ui'
 import { getServicesByCategory, getSolutionsByService } from '../services/api'
 import pacLogo from '../assets/pac/logo-white.png'
+
+const MotionLink = motion.create(Link)
 
 const cardShellClass = 'relative overflow-hidden rounded-[18px] border border-white bg-white/5'
 
@@ -73,6 +76,18 @@ function ServiceSolutionsFace({ solutions, loading, error, t }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {!loading && !error && (
+        <MotionLink
+          to="/contact"
+          onClick={(e) => e.stopPropagation()}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.97 }}
+          className="mt-1 whitespace-nowrap rounded-full bg-gradient-to-br from-pac-cyan to-pac-blue px-6 py-2.5 font-heading text-[13px] font-bold text-white shadow-[0_8px_24px_rgba(0,192,255,0.35)]"
+        >
+          {t('Nous contacter', 'Contact us')}
+        </MotionLink>
       )}
     </div>
   )
