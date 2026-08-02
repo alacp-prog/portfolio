@@ -61,9 +61,48 @@ export class ContactController {
     }
 
     const service = new ContactService(c.env.portfolio_db);
+
+    const catalogErrors = await service.validateCatalogSelection(validation.parsed!);
+    if (catalogErrors.length > 0) {
+      return c.json(
+        {
+          success: false,
+          message: "Validation failed",
+          errors: catalogErrors,
+        },
+        400
+      );
+    }
+
     const result = await service.createContact(validation.parsed!);
 
     return c.json({ success: true, result }, 201);
+  }
+
+  static async updateStatus(c: Context<{ Bindings: Bindings }>) {
+    const id = Number(c.req.param("id"));
+    const body = await c.req.json();
+
+    if (body?.status !== "new" && body?.status !== "treated") {
+      return c.json(
+        { success: false, message: "status must be 'new' or 'treated'" },
+        400
+      );
+    }
+
+    const service = new ContactService(c.env.portfolio_db);
+
+    const existing = await service.getContact(id);
+    if (!existing) {
+      return c.json(
+        { success: false, message: "Contact not found" },
+        404
+      );
+    }
+
+    await service.updateContactStatus(id, body.status);
+
+    return c.json({ success: true, message: "Contact updated" });
   }
 
   static async remove(c: Context<{ Bindings: Bindings }>) {

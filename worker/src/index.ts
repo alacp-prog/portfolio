@@ -36,7 +36,7 @@ app.use(
   cors({
     origin: (origin) =>
       ALLOWED_ORIGIN_PATTERNS.some((pattern) => pattern.test(origin)) ? origin : null,
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     // Required so the browser stores/sends the HttpOnly admin_token cookie cross-site
     // (admin dashboard on *.pages.dev, API on *.workers.dev). Safe to combine with

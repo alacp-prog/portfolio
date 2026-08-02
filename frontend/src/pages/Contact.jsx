@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { MessagesSquare, CircleUser } from 'lucide-react'
 import useT from '../hooks/useT'
 import Seo from '../components/Seo'
 import { breadcrumbJsonLd } from '../lib/seo'
 import { eyebrowClass, circuitHeroBg, pulseAnim } from '../lib/ui'
-import { submitContact } from '../services/api'
+import { getCategories, getServicesByCategory, getSolutionsByService, submitContact } from '../services/api'
 import { PhoneIcon, WhatsAppIcon, FacebookIcon, LinkedInIcon, InstagramIcon, GmailIcon } from '../components/BrandIcons'
 
 const CONTACT_CHANNELS = [
@@ -18,29 +18,15 @@ const CONTACT_CHANNELS = [
 ]
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-
-const PROJECT_TYPES = [
-  { value: 'web', fr: 'Site web', en: 'Website' },
-  { value: 'ecommerce', fr: 'E-commerce', en: 'E-commerce' },
-  { value: 'mobile', fr: 'Application mobile', en: 'Mobile app' },
-  { value: 'branding', fr: 'Branding / identité', en: 'Branding / identity' },
-  { value: 'autre', fr: 'Autre', en: 'Other' },
-]
-
-const BUDGETS = [
-  { value: '<2k', fr: '< 2 000 €', en: '< €2,000' },
-  { value: '2-5k', fr: '2 000 – 5 000 €', en: '€2,000 – 5,000' },
-  { value: '5-15k', fr: '5 000 – 15 000 €', en: '€5,000 – 15,000' },
-  { value: '>15k', fr: '> 15 000 €', en: '> €15,000' },
-  { value: 'unsure', fr: 'Je ne sais pas encore', en: 'Not sure yet' },
-]
+const PHONE_RE = /^[0-9+()\-.\s]{6,20}$/
 
 const inputClass =
   'rounded-xl border-[1.5px] border-white/18 bg-white/6 px-4 py-3.5 text-[14.5px] text-pac-ink outline-none placeholder:text-white/35 focus-visible:border-pac-cyan focus-visible:bg-white/5'
 const labelClass = 'font-heading text-[13px] font-semibold text-pac-ink'
 const errorClass = 'text-[12.5px] font-semibold text-[#E0455A]'
+const hintClass = 'text-[12.5px] text-white/40'
 
-function Field({ id, label, error, children }) {
+function Field({ id, label, error, hint, children }) {
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className={labelClass}>
@@ -52,6 +38,7 @@ function Field({ id, label, error, children }) {
           {error}
         </span>
       )}
+      {!error && hint && <span className={hintClass}>{hint}</span>}
     </div>
   )
 }
@@ -79,41 +66,156 @@ function fieldRowVariants(reduce) {
   }
 }
 
+const initialForm = {
+  name: '',
+  email: '',
+  phone: '',
+  categorySlug: '',
+  serviceSlug: '',
+  solutionSlugs: [],
+  description: '',
+}
+
+const initialErrors = { name: false, email: false, phone: false, category: false, service: false, solutions: false }
+
 export default function Contact({ lang }) {
   const t = useT(lang)
   const reduce = useReducedMotion()
-  const [form, setForm] = useState({ name: '', email: '', projectType: 'web', budget: '<2k', message: '' })
-  const [errors, setErrors] = useState({ name: false, email: false, message: false })
+
+  const [form, setForm] = useState(initialForm)
+  const [errors, setErrors] = useState(initialErrors)
   const [sent, setSent] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [serverErrors, setServerErrors] = useState([])
 
+  const [categories, setCategories] = useState([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [categoriesError, setCategoriesError] = useState(null)
+
+  const [services, setServices] = useState([])
+  const [loadingServices, setLoadingServices] = useState(false)
+  const [servicesError, setServicesError] = useState(null)
+
+  const [solutionsList, setSolutionsList] = useState([])
+  const [loadingSolutions, setLoadingSolutions] = useState(false)
+  const [solutionsError, setSolutionsError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    getCategories()
+      .then((res) => {
+        if (!cancelled) setCategories(res.data ?? [])
+      })
+      .catch((err) => {
+        if (!cancelled) setCategoriesError(err.message)
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingCategories(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!form.categorySlug) {
+      setServices([])
+      return
+    }
+    let cancelled = false
+    setLoadingServices(true)
+    setServicesError(null)
+    getServicesByCategory(form.categorySlug)
+      .then((res) => {
+        if (!cancelled) setServices(res.data ?? [])
+      })
+      .catch((err) => {
+        if (!cancelled) setServicesError(err.message)
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingServices(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [form.categorySlug])
+
+  useEffect(() => {
+    if (!form.serviceSlug) {
+      setSolutionsList([])
+      return
+    }
+    let cancelled = false
+    setLoadingSolutions(true)
+    setSolutionsError(null)
+    getSolutionsByService(form.serviceSlug)
+      .then((res) => {
+        if (!cancelled) setSolutionsList(res.data ?? [])
+      })
+      .catch((err) => {
+        if (!cancelled) setSolutionsError(err.message)
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingSolutions(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [form.serviceSlug])
+
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
+
+  const updateCategory = (e) => {
+    const categorySlug = e.target.value
+    setForm((f) => ({ ...f, categorySlug, serviceSlug: '', solutionSlugs: [] }))
+  }
+
+  const updateService = (e) => {
+    const serviceSlug = e.target.value
+    setForm((f) => ({ ...f, serviceSlug, solutionSlugs: [] }))
+  }
+
+  const toggleSolution = (slug) => {
+    setForm((f) => ({
+      ...f,
+      solutionSlugs: f.solutionSlugs.includes(slug)
+        ? f.solutionSlugs.filter((s) => s !== slug)
+        : [...f.solutionSlugs, slug],
+    }))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     const errName = form.name.trim().length < 2
     const errEmail = !EMAIL_RE.test(form.email.trim())
-    const errMsg = form.message.trim().length < 20
-    if (errName || errEmail || errMsg) {
-      setErrors({ name: errName, email: errEmail, message: errMsg })
+    const errPhone = !PHONE_RE.test(form.phone.trim())
+    const errCategory = !form.categorySlug
+    const errService = !form.serviceSlug
+    const errSolutions = form.solutionSlugs.length === 0
+
+    if (errName || errEmail || errPhone || errCategory || errService || errSolutions) {
+      setErrors({ name: errName, email: errEmail, phone: errPhone, category: errCategory, service: errService, solutions: errSolutions })
       return
     }
-    setErrors({ name: false, email: false, message: false })
+    setErrors(initialErrors)
     setServerErrors([])
     setSubmitting(true)
 
-    const projectTypeLabel = PROJECT_TYPES.find((opt) => opt.value === form.projectType)
-    const budgetLabel = BUDGETS.find((opt) => opt.value === form.budget)
-    const context = [projectTypeLabel && t(projectTypeLabel.fr, projectTypeLabel.en), budgetLabel && t(budgetLabel.fr, budgetLabel.en)]
+    const categoryName = categories.find((c) => c.slug === form.categorySlug)?.name ?? form.categorySlug
+    const serviceName = services.find((s) => s.slug === form.serviceSlug)?.name ?? form.serviceSlug
+    const solutionNames = form.solutionSlugs
+      .map((slug) => solutionsList.find((s) => s.solution_slug === slug)?.solution_name)
       .filter(Boolean)
-      .join(' · ')
 
     try {
       await submitContact({
         name: form.name.trim(),
         email: form.email.trim(),
-        message: context ? `[${context}] ${form.message.trim()}` : form.message.trim(),
+        phone: form.phone.trim(),
+        category: categoryName,
+        service: serviceName,
+        solutions: solutionNames,
+        description: form.description.trim() || undefined,
       })
       setSent(true)
     } catch (error) {
@@ -124,9 +226,11 @@ export default function Contact({ lang }) {
   }
 
   const resetForm = () => {
-    setForm({ name: '', email: '', projectType: 'web', budget: '<2k', message: '' })
-    setErrors({ name: false, email: false, message: false })
+    setForm(initialForm)
+    setErrors(initialErrors)
     setServerErrors([])
+    setServices([])
+    setSolutionsList([])
     setSent(false)
   }
 
@@ -254,36 +358,139 @@ export default function Contact({ lang }) {
                   </motion.div>
 
                   <motion.div variants={fieldRowVariants(reduce)} className="grid grid-cols-2 gap-5 max-[560px]:grid-cols-1">
-                    <Field id="projectType" label={t('Type de projet', 'Project type')}>
-                      <select id="projectType" value={form.projectType} onChange={update('projectType')} className={`${inputClass} cursor-pointer`}>
-                        {PROJECT_TYPES.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {t(opt.fr, opt.en)}
-                          </option>
-                        ))}
-                      </select>
+                    <Field id="phone" label={t('Téléphone *', 'Phone *')} error={errors.phone && t('Numéro de téléphone invalide.', 'Invalid phone number.')}>
+                      <input
+                        id="phone"
+                        type="tel"
+                        value={form.phone}
+                        onChange={update('phone')}
+                        placeholder={t('+212 6 61 23 45 67', '+212 6 61 23 45 67')}
+                        aria-invalid={errors.phone}
+                        aria-describedby={errors.phone ? 'phone-error' : undefined}
+                        autoComplete="tel"
+                        className={inputClass}
+                      />
                     </Field>
-                    <Field id="budget" label="Budget">
-                      <select id="budget" value={form.budget} onChange={update('budget')} className={`${inputClass} cursor-pointer`}>
-                        {BUDGETS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {t(opt.fr, opt.en)}
+                    <Field id="category" label={t('Catégorie *', 'Category *')} error={errors.category && t('Veuillez choisir une catégorie.', 'Please choose a category.')}>
+                      <select
+                        id="category"
+                        value={form.categorySlug}
+                        onChange={updateCategory}
+                        aria-invalid={errors.category}
+                        aria-describedby={errors.category ? 'category-error' : undefined}
+                        disabled={loadingCategories}
+                        className={`${inputClass} cursor-pointer disabled:cursor-not-allowed disabled:opacity-60`}
+                      >
+                        <option value="">
+                          {loadingCategories
+                            ? t('Chargement…', 'Loading…')
+                            : t('Sélectionner une catégorie', 'Select a category')}
+                        </option>
+                        {categories.map((cat) => (
+                          <option key={cat.slug} value={cat.slug}>
+                            {cat.name}
                           </option>
                         ))}
                       </select>
+                      {categoriesError && (
+                        <span className={errorClass}>
+                          {t('Impossible de charger les catégories.', 'Failed to load categories.')}
+                        </span>
+                      )}
                     </Field>
                   </motion.div>
 
                   <motion.div variants={fieldRowVariants(reduce)}>
-                    <Field id="message" label="Message *" error={errors.message && t('Dites-nous en un peu plus (20 caractères min.).', 'Tell us a bit more (min. 20 characters).')}>
+                    <Field id="service" label={t('Service *', 'Service *')} error={errors.service && t('Veuillez choisir un service.', 'Please choose a service.')}>
+                      <select
+                        id="service"
+                        value={form.serviceSlug}
+                        onChange={updateService}
+                        aria-invalid={errors.service}
+                        aria-describedby={errors.service ? 'service-error' : undefined}
+                        disabled={!form.categorySlug || loadingServices}
+                        className={`${inputClass} cursor-pointer disabled:cursor-not-allowed disabled:opacity-60`}
+                      >
+                        <option value="">
+                          {!form.categorySlug
+                            ? t('Choisissez d’abord une catégorie', 'Choose a category first')
+                            : loadingServices
+                              ? t('Chargement…', 'Loading…')
+                              : t('Sélectionner un service', 'Select a service')}
+                        </option>
+                        {services.map((svc) => (
+                          <option key={svc.slug} value={svc.slug}>
+                            {svc.name}
+                          </option>
+                        ))}
+                      </select>
+                      {servicesError && (
+                        <span className={errorClass}>
+                          {t('Impossible de charger les services.', 'Failed to load services.')}
+                        </span>
+                      )}
+                      {!servicesError && form.categorySlug && !loadingServices && services.length === 0 && (
+                        <span className={hintClass}>
+                          {t('Aucun service dans cette catégorie pour le moment.', 'No services in this category yet.')}
+                        </span>
+                      )}
+                    </Field>
+                  </motion.div>
+
+                  <motion.div variants={fieldRowVariants(reduce)}>
+                    <Field
+                      id="solutions"
+                      label={t('Solutions souhaitées *', 'Solutions you want *')}
+                      error={errors.solutions && t('Veuillez choisir au moins une solution.', 'Please choose at least one solution.')}
+                    >
+                      {!form.serviceSlug && (
+                        <span className={hintClass}>{t('Choisissez d’abord un service.', 'Choose a service first.')}</span>
+                      )}
+                      {form.serviceSlug && loadingSolutions && (
+                        <span className={hintClass}>{t('Chargement…', 'Loading…')}</span>
+                      )}
+                      {solutionsError && <span className={errorClass}>{solutionsError}</span>}
+                      {form.serviceSlug && !loadingSolutions && !solutionsError && solutionsList.length === 0 && (
+                        <span className={hintClass}>
+                          {t('Aucune solution associée pour le moment.', 'No solution linked yet.')}
+                        </span>
+                      )}
+                      {form.serviceSlug && !loadingSolutions && solutionsList.length > 0 && (
+                        <div role="group" aria-labelledby="solutions" className="flex flex-wrap gap-2.5">
+                          {solutionsList.map((sol) => {
+                            const checked = form.solutionSlugs.includes(sol.solution_slug)
+                            return (
+                              <label
+                                key={sol.solution_slug}
+                                className={`flex cursor-pointer items-center gap-2 rounded-xl border-[1.5px] px-4 py-2.5 text-[13.5px] transition-colors ${
+                                  checked
+                                    ? 'border-pac-cyan bg-pac-cyan/10 text-pac-ink'
+                                    : 'border-white/18 bg-white/6 text-white/70 hover:border-white/35'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleSolution(sol.solution_slug)}
+                                  className="h-3.5 w-3.5 accent-pac-cyan"
+                                />
+                                {sol.solution_name}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </Field>
+                  </motion.div>
+
+                  <motion.div variants={fieldRowVariants(reduce)}>
+                    <Field id="description" label={t('Description', 'Description')} hint={t('Facultatif — précisez votre besoin si vous le souhaitez.', 'Optional — add details if you like.')}>
                       <textarea
-                        id="message"
-                        value={form.message}
-                        onChange={update('message')}
-                        rows={6}
+                        id="description"
+                        value={form.description}
+                        onChange={update('description')}
+                        rows={5}
                         placeholder={t('Décrivez votre projet, vos objectifs, vos délais…', 'Describe your project, goals and timeline…')}
-                        aria-invalid={errors.message}
-                        aria-describedby={errors.message ? 'message-error' : undefined}
                         className={`${inputClass} resize-y`}
                       />
                     </Field>

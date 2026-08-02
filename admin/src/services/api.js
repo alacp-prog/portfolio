@@ -162,6 +162,10 @@ export function getContacts() {
   return apiFetch('/contacts')
 }
 
+export function updateContactStatus(id, status) {
+  return apiFetch(`/contacts/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) })
+}
+
 export function deleteContact(id) {
   return apiFetch(`/contacts/${id}`, { method: 'DELETE' })
 }

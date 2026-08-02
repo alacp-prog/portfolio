@@ -16,6 +16,9 @@ contactRoutes.post("/", ContactController.create);
 // Any authenticated role can read messages ("viewer" = consultation only).
 contactRoutes.get("/", requireAuth, ContactController.list);
 contactRoutes.get("/:id", requireAuth, ContactController.get);
+// Marking a message as read/treated is bookkeeping, not content editing — any
+// authenticated role can do it, same as reading.
+contactRoutes.patch("/:id", requireAuth, ContactController.updateStatus);
 contactRoutes.delete("/:id", requireAuth, requireRole("admin", "editor"), ContactController.remove);
 
 export default contactRoutes;
