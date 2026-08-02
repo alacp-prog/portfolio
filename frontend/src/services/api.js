@@ -29,6 +29,10 @@ export function getServicesByCategory(slug) {
   return apiFetch(`/service-categories/${slug}/services`)
 }
 
+export function getSolutionsByService(slug) {
+  return apiFetch(`/services/${slug}/solutions`)
+}
+
 export function getSkills() {
   return apiFetch('/skills')
 }

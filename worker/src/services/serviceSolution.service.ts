@@ -15,6 +15,10 @@ export class ServiceSolutionService {
     return await this.repository.findById(id);
   }
 
+  async getPublicSolutionsByServiceSlug(serviceSlug: string) {
+    return await this.repository.findPublicByServiceSlug(serviceSlug);
+  }
+
   async createServiceSolution(data: {
     serviceId: string;
     solutionId: string;

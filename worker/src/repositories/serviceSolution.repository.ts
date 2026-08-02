@@ -48,6 +48,31 @@ export class ServiceSolutionRepository {
     return results;
   }
 
+  async findPublicByServiceSlug(serviceSlug: string) {
+    const { results } = await this.db
+      .prepare(
+        `SELECT
+           solutions.name AS solution_name,
+           solutions.slug AS solution_slug,
+           solutions.description AS solution_description,
+           solutions.price_type,
+           solutions.price,
+           solutions.duration,
+           solutions.image,
+           service_solutions.description,
+           service_solutions.is_recommended
+         FROM service_solutions
+         JOIN services ON services.id = service_solutions.service_id
+         JOIN solutions ON solutions.id = service_solutions.solution_id
+         WHERE services.slug = ?
+         ORDER BY service_solutions.is_recommended DESC, service_solutions.created_at DESC`
+      )
+      .bind(serviceSlug)
+      .all();
+
+    return results;
+  }
+
   async findById(id: string) {
     return await this.db
       .prepare(`${SELECT_WITH_NAMES} WHERE service_solutions.id = ?`)

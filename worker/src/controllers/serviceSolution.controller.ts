@@ -24,6 +24,17 @@ export class ServiceSolutionController {
     });
   }
 
+  static async listByServiceSlug(c: Context<{ Bindings: Bindings }>) {
+    const slug = c.req.param("slug")!;
+    const service = new ServiceSolutionService(c.env.portfolio_db);
+    const solutions = await service.getPublicSolutionsByServiceSlug(slug);
+
+    return c.json({
+      success: true,
+      data: solutions,
+    });
+  }
+
   static async get(c: Context<{ Bindings: Bindings }>) {
     const id = c.req.param("id")!;
     const service = new ServiceSolutionService(c.env.portfolio_db);
