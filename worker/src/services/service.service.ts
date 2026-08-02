@@ -15,6 +15,10 @@ export class ServiceService {
     return await this.repository.findById(id);
   }
 
+  async getPublicServicesByCategorySlug(categorySlug: string) {
+    return await this.repository.findPublicByCategorySlug(categorySlug);
+  }
+
   async createService(data: {
     categoryId: string;
     name: string;

@@ -21,12 +21,12 @@ export function getProjects() {
   return apiFetch('/projects')
 }
 
-export function getServices() {
-  return apiFetch('/services')
-}
-
 export function getCategories() {
   return apiFetch('/service-categories')
+}
+
+export function getServicesByCategory(slug) {
+  return apiFetch(`/service-categories/${slug}/services`)
 }
 
 export function getSkills() {

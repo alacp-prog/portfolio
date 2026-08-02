@@ -24,6 +24,17 @@ export class ServiceController {
     });
   }
 
+  static async listByCategorySlug(c: Context<{ Bindings: Bindings }>) {
+    const slug = c.req.param("slug")!;
+    const service = new ServiceService(c.env.portfolio_db);
+    const services = await service.getPublicServicesByCategorySlug(slug);
+
+    return c.json({
+      success: true,
+      data: services,
+    });
+  }
+
   static async get(c: Context<{ Bindings: Bindings }>) {
     const id = c.req.param("id")!;
     const service = new ServiceService(c.env.portfolio_db);

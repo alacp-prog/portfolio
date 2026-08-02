@@ -53,6 +53,21 @@ export class ServiceRepository {
     return row ? parseRow(row as Record<string, unknown>) : row;
   }
 
+  async findPublicByCategorySlug(categorySlug: string) {
+    const { results } = await this.db
+      .prepare(
+        `SELECT services.name, services.slug, services.description, services.problems, services.image, services.is_new
+         FROM services
+         JOIN service_categories ON service_categories.id = services.category_id
+         WHERE service_categories.slug = ? AND services.visible = 1
+         ORDER BY services.created_at DESC`
+      )
+      .bind(categorySlug)
+      .all();
+
+    return results.map((row) => parseRow(row as Record<string, unknown>));
+  }
+
   async create(data: {
     categoryId: string;
     name: string;

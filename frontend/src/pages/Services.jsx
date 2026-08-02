@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import useT from '../hooks/useT'
 import Seo from '../components/Seo'
 import { breadcrumbJsonLd } from '../lib/seo'
 import { eyebrowClass, fadeUp, stagger, circuitHeroBg } from '../lib/ui'
 import { getCategories } from '../services/api'
+import ServiceCategoryModal from '../components/ServiceCategoryModal'
 
 export default function Services({ lang }) {
   const t = useT(lang)
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [activeSlug, setActiveSlug] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -98,40 +99,36 @@ export default function Services({ lang }) {
             viewport={{ once: true, margin: '-80px' }}
             className="mx-auto grid max-w-[1240px] grid-cols-3 gap-5 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1"
           >
-            {categoryCards.map((c) => {
-              const active = activeSlug === c.slug
-              return (
-                <motion.button
-                  key={c.id}
-                  type="button"
-                  variants={fadeUp}
-                  whileHover={{ y: -5 }}
-                  onClick={() => setActiveSlug(active ? null : c.slug)}
-                  aria-pressed={active}
-                  className={`relative flex flex-col items-start gap-2 rounded-[16px] border p-[22px] text-left transition-colors ${
-                    active
-                      ? 'border-pac-cyan bg-pac-cyan/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/25 hover:bg-white/[0.07]'
-                  }`}
-                >
-                  {Boolean(c.is_new) && (
-                    <span className="absolute right-4 top-0 -translate-y-1/2 rounded-full bg-pac-cyan px-3 py-1 font-heading text-[11.5px] font-bold uppercase tracking-[0.5px] text-pac-navy-950 shadow-md">
-                      {t('Nouveau', 'New')}
-                    </span>
-                  )}
-                  <h3 className={`m-0 font-heading text-[16.5px] font-bold ${active ? 'text-pac-cyan-light' : 'text-pac-ink'}`}>
-                    {c.name}
-                  </h3>
-                  {c.description && (
-                    <p className="m-0 line-clamp-2 text-[13.5px] leading-[1.6] text-white/60">{c.description}</p>
-                  )}
-                </motion.button>
-              )
-            })}
+            {categoryCards.map((c) => (
+              <motion.button
+                key={c.id}
+                type="button"
+                variants={fadeUp}
+                whileHover={{ y: -5 }}
+                onClick={() => setSelectedCategory(c)}
+                className="relative flex flex-col items-start gap-2 rounded-[16px] border border-white/10 bg-white/5 p-[22px] text-left transition-colors hover:border-white/25 hover:bg-white/[0.07]"
+              >
+                {Boolean(c.is_new) && (
+                  <span className="absolute right-4 top-0 -translate-y-1/2 rounded-full bg-pac-cyan px-3 py-1 font-heading text-[11.5px] font-bold uppercase tracking-[0.5px] text-pac-navy-950 shadow-md">
+                    {t('Nouveau', 'New')}
+                  </span>
+                )}
+                <h3 className="m-0 font-heading text-[16.5px] font-bold text-pac-ink">{c.name}</h3>
+                {c.description && (
+                  <p className="m-0 line-clamp-2 text-[13.5px] leading-[1.6] text-white/60">{c.description}</p>
+                )}
+              </motion.button>
+            ))}
           </motion.div>
         )}
       </section>
     </main>
+
+    <AnimatePresence>
+      {selectedCategory && (
+        <ServiceCategoryModal category={selectedCategory} onClose={() => setSelectedCategory(null)} t={t} />
+      )}
+    </AnimatePresence>
     </>
   )
 }
