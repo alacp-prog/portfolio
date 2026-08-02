@@ -9,6 +9,10 @@ type Bindings = {
   portfolio_db: D1Database;
 };
 
+function isUniqueConstraintError(error: unknown): boolean {
+  return error instanceof Error && /UNIQUE constraint failed/i.test(error.message);
+}
+
 export class ServiceController {
   static async list(c: Context<{ Bindings: Bindings }>) {
     const service = new ServiceService(c.env.portfolio_db);
@@ -21,7 +25,7 @@ export class ServiceController {
   }
 
   static async get(c: Context<{ Bindings: Bindings }>) {
-    const id = Number(c.req.param("id"));
+    const id = c.req.param("id")!;
     const service = new ServiceService(c.env.portfolio_db);
     const item = await service.getService(id);
 
@@ -54,13 +58,20 @@ export class ServiceController {
     }
 
     const service = new ServiceService(c.env.portfolio_db);
-    const result = await service.createService(validation.parsed!);
 
-    return c.json({ success: true, result }, 201);
+    try {
+      const id = await service.createService(validation.parsed!);
+      return c.json({ success: true, data: { id } }, 201);
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        return c.json({ success: false, message: "Un service avec ce slug existe déjà" }, 409);
+      }
+      throw error;
+    }
   }
 
   static async update(c: Context<{ Bindings: Bindings }>) {
-    const id = Number(c.req.param("id"));
+    const id = c.req.param("id")!;
     const body = await c.req.json();
     const validation = validateUpdateService(body);
 
@@ -85,13 +96,20 @@ export class ServiceController {
       );
     }
 
-    await service.updateService(id, validation.parsed!);
+    try {
+      await service.updateService(id, validation.parsed!);
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        return c.json({ success: false, message: "Un service avec ce slug existe déjà" }, 409);
+      }
+      throw error;
+    }
 
     return c.json({ success: true, message: "Service updated" });
   }
 
   static async remove(c: Context<{ Bindings: Bindings }>) {
-    const id = Number(c.req.param("id"));
+    const id = c.req.param("id")!;
     const service = new ServiceService(c.env.portfolio_db);
 
     const existing = await service.getService(id);

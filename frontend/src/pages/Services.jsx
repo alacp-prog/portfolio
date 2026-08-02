@@ -1,23 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import useT from '../hooks/useT'
 import Seo from '../components/Seo'
 import { breadcrumbJsonLd } from '../lib/seo'
-import { cardClass, eyebrowClass, fadeUp, stagger, circuitHeroBg } from '../lib/ui'
-import { getServices } from '../services/api'
+import { eyebrowClass, fadeUp, stagger, circuitHeroBg } from '../lib/ui'
+import { getCategories } from '../services/api'
 
 export default function Services({ lang }) {
   const t = useT(lang)
-  const [services, setServices] = useState([])
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [activeSlug, setActiveSlug] = useState(null)
 
   useEffect(() => {
     let cancelled = false
 
-    getServices()
+    getCategories()
       .then((res) => {
-        if (!cancelled) setServices((res.data ?? []).filter((s) => s.visible))
+        if (!cancelled) setCategories(res.data ?? [])
       })
       .catch((err) => {
         if (!cancelled) setError(err.message)
@@ -30,6 +31,11 @@ export default function Services({ lang }) {
       cancelled = true
     }
   }, [])
+
+  const categoryCards = useMemo(
+    () => [...categories].sort((a, b) => a.name.localeCompare(b.name)),
+    [categories]
+  )
 
   return (
     <>
@@ -67,45 +73,61 @@ export default function Services({ lang }) {
         </motion.div>
       </section>
 
-      {/* Services grid */}
-      <section className="px-8 py-[90px]">
+      {/* Categories */}
+      <section aria-label={t('Catégories', 'Categories')} className="px-8 py-[90px]">
         {loading && (
-          <p className="py-10 text-center text-[15px] text-white/50">{t('Chargement des services…', 'Loading services…')}</p>
+          <p className="py-10 text-center text-[15px] text-white/50">{t('Chargement des catégories…', 'Loading categories…')}</p>
         )}
         {error && (
           <p className="py-10 text-center text-[15px] text-[#E0455A]">
-            {t('Impossible de charger les services : ', 'Failed to load services: ')}
+            {t('Impossible de charger les catégories : ', 'Failed to load categories: ')}
             {error}
           </p>
         )}
-        {!loading && !error && services.length === 0 && (
+        {!loading && !error && categoryCards.length === 0 && (
           <p className="py-10 text-center text-[15px] text-white/50">
-            {t('Aucun service pour le moment.', 'No services yet.')}
+            {t('Aucune catégorie pour le moment.', 'No categories yet.')}
           </p>
         )}
 
-        {!loading && !error && services.length > 0 && (
+        {!loading && !error && categoryCards.length > 0 && (
           <motion.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: '-80px' }}
-            className="mx-auto grid max-w-[1240px] grid-cols-3 gap-6 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1"
+            className="mx-auto grid max-w-[1240px] grid-cols-3 gap-5 max-[900px]:grid-cols-2 max-[560px]:grid-cols-1"
           >
-            {services.map((s) => (
-              <motion.div key={s.id} variants={fadeUp} whileHover={{ y: -6 }} className={`relative ${cardClass}`}>
-                {Boolean(s.is_new) && (
-                  <span className="absolute right-5 top-5 rounded-full bg-pac-cyan px-2.5 py-1 font-heading text-[10.5px] font-bold uppercase tracking-[0.5px] text-pac-navy-950">
-                    {t('Nouveau', 'New')}
-                  </span>
-                )}
-                <span aria-hidden="true" className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-pac-cyan/12 font-heading text-lg font-extrabold text-pac-cyan-light">
-                  {s.icon || '◐'}
-                </span>
-                <h2 className="m-0 font-heading text-[19px] font-bold text-pac-ink">{s.title}</h2>
-                <p className="m-0 text-[14.5px] leading-[1.7] text-white/65">{s.description}</p>
-              </motion.div>
-            ))}
+            {categoryCards.map((c) => {
+              const active = activeSlug === c.slug
+              return (
+                <motion.button
+                  key={c.id}
+                  type="button"
+                  variants={fadeUp}
+                  whileHover={{ y: -5 }}
+                  onClick={() => setActiveSlug(active ? null : c.slug)}
+                  aria-pressed={active}
+                  className={`relative flex flex-col items-start gap-2 rounded-[16px] border p-[22px] text-left transition-colors ${
+                    active
+                      ? 'border-pac-cyan bg-pac-cyan/10'
+                      : 'border-white/10 bg-white/5 hover:border-white/25 hover:bg-white/[0.07]'
+                  }`}
+                >
+                  {Boolean(c.is_new) && (
+                    <span className="absolute right-4 top-0 -translate-y-1/2 rounded-full bg-pac-cyan px-3 py-1 font-heading text-[11.5px] font-bold uppercase tracking-[0.5px] text-pac-navy-950 shadow-md">
+                      {t('Nouveau', 'New')}
+                    </span>
+                  )}
+                  <h3 className={`m-0 font-heading text-[16.5px] font-bold ${active ? 'text-pac-cyan-light' : 'text-pac-ink'}`}>
+                    {c.name}
+                  </h3>
+                  {c.description && (
+                    <p className="m-0 line-clamp-2 text-[13.5px] leading-[1.6] text-white/60">{c.description}</p>
+                  )}
+                </motion.button>
+              )
+            })}
           </motion.div>
         )}
       </section>

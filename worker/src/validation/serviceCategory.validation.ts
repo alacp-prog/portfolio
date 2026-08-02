@@ -1,23 +1,15 @@
-export interface CreateServiceInput {
-  categoryId: string;
+export interface CreateServiceCategoryInput {
   name: string;
   slug: string;
-  problems: string[];
   description?: string;
-  image?: string;
   isNew: boolean;
-  visible: boolean;
 }
 
-export interface UpdateServiceInput {
-  categoryId?: string;
+export interface UpdateServiceCategoryInput {
   name?: string;
   slug?: string;
-  problems?: string[];
   description?: string;
-  image?: string;
   isNew?: boolean;
-  visible?: boolean;
 }
 
 const COMBINING_DIACRITICS = new RegExp("[̀-ͯ]", "g");
@@ -32,30 +24,16 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-function parseProblems(value: unknown): { valid: boolean; problems?: string[] } {
-  if (!Array.isArray(value)) return { valid: false };
-  const problems: string[] = [];
-  for (const item of value) {
-    if (typeof item !== "string" || item.trim().length === 0) return { valid: false };
-    problems.push(item.trim());
-  }
-  return { valid: true, problems };
-}
-
-export function validateCreateService(data: unknown): {
+export function validateCreateServiceCategory(data: unknown): {
   valid: boolean;
   errors: string[];
-  parsed?: CreateServiceInput;
+  parsed?: CreateServiceCategoryInput;
 } {
   const errors: string[] = [];
   const input = data as Record<string, unknown>;
 
   if (!input || typeof input !== "object") {
     return { valid: false, errors: ["Body must be a JSON object"] };
-  }
-
-  if (!input.categoryId || typeof input.categoryId !== "string" || input.categoryId.trim().length === 0) {
-    errors.push("categoryId is required and must be a non-empty string");
   }
 
   if (!input.name || typeof input.name !== "string" || input.name.trim().length === 0) {
@@ -68,30 +46,10 @@ export function validateCreateService(data: unknown): {
     }
   }
 
-  let problems: string[] = [];
-  if (input.problems !== undefined) {
-    const result = parseProblems(input.problems);
-    if (!result.valid) {
-      errors.push("problems must be an array of non-empty strings");
-    } else {
-      problems = result.problems!;
-    }
-  }
-
   if (input.description !== undefined && input.description !== null) {
     if (typeof input.description !== "string") {
       errors.push("description must be a string");
     }
-  }
-
-  if (input.image !== undefined && input.image !== null) {
-    if (typeof input.image !== "string" || input.image.trim().length === 0) {
-      errors.push("image must be a non-empty string");
-    }
-  }
-
-  if (input.visible !== undefined && typeof input.visible !== "boolean") {
-    errors.push("visible must be a boolean");
   }
 
   if (input.isNew !== undefined && typeof input.isNew !== "boolean") {
@@ -113,22 +71,18 @@ export function validateCreateService(data: unknown): {
     valid: true,
     errors: [],
     parsed: {
-      categoryId: (input.categoryId as string).trim(),
       name,
       slug,
-      problems,
       description: input.description ? (input.description as string).trim() : undefined,
-      image: input.image ? (input.image as string).trim() : undefined,
-      visible: typeof input.visible === "boolean" ? input.visible : true,
       isNew: typeof input.isNew === "boolean" ? input.isNew : false,
     },
   };
 }
 
-export function validateUpdateService(data: unknown): {
+export function validateUpdateServiceCategory(data: unknown): {
   valid: boolean;
   errors: string[];
-  parsed?: UpdateServiceInput;
+  parsed?: UpdateServiceCategoryInput;
 } {
   const errors: string[] = [];
   const input = data as Record<string, unknown>;
@@ -138,24 +92,13 @@ export function validateUpdateService(data: unknown): {
   }
 
   const hasFields =
-    input.categoryId !== undefined ||
     input.name !== undefined ||
     input.slug !== undefined ||
-    input.problems !== undefined ||
     input.description !== undefined ||
-    input.image !== undefined ||
-    input.visible !== undefined ||
     input.isNew !== undefined;
 
   if (!hasFields) {
     return { valid: false, errors: ["At least one field is required for update"] };
-  }
-
-  if (
-    input.categoryId !== undefined &&
-    (typeof input.categoryId !== "string" || input.categoryId.trim().length === 0)
-  ) {
-    errors.push("categoryId must be a non-empty string");
   }
 
   if (input.name !== undefined) {
@@ -170,30 +113,10 @@ export function validateUpdateService(data: unknown): {
     }
   }
 
-  let problems: string[] | undefined;
-  if (input.problems !== undefined) {
-    const result = parseProblems(input.problems);
-    if (!result.valid) {
-      errors.push("problems must be an array of non-empty strings");
-    } else {
-      problems = result.problems!;
-    }
-  }
-
   if (input.description !== undefined && input.description !== null) {
     if (typeof input.description !== "string") {
       errors.push("description must be a string");
     }
-  }
-
-  if (input.image !== undefined && input.image !== null) {
-    if (typeof input.image !== "string" || input.image.trim().length === 0) {
-      errors.push("image must be a non-empty string");
-    }
-  }
-
-  if (input.visible !== undefined && typeof input.visible !== "boolean") {
-    errors.push("visible must be a boolean");
   }
 
   if (input.isNew !== undefined && typeof input.isNew !== "boolean") {
@@ -208,13 +131,9 @@ export function validateUpdateService(data: unknown): {
     valid: true,
     errors: [],
     parsed: {
-      categoryId: input.categoryId ? (input.categoryId as string).trim() : undefined,
       name: input.name ? (input.name as string).trim() : undefined,
       slug: input.slug ? slugify(input.slug as string) : undefined,
-      problems,
       description: input.description ? (input.description as string).trim() : undefined,
-      image: input.image ? (input.image as string).trim() : undefined,
-      visible: typeof input.visible === "boolean" ? input.visible : undefined,
       isNew: typeof input.isNew === "boolean" ? input.isNew : undefined,
     },
   };

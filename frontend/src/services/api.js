@@ -25,6 +25,10 @@ export function getServices() {
   return apiFetch('/services')
 }
 
+export function getCategories() {
+  return apiFetch('/service-categories')
+}
+
 export function getSkills() {
   return apiFetch('/skills')
 }

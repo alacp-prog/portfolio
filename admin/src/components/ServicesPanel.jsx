@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlass,
@@ -11,6 +12,8 @@ import {
   Rows,
   GridFour,
   CaretDown,
+  CaretRight,
+  Tag,
   X,
 } from '@phosphor-icons/react'
 import { staggerContainer, staggerItem } from '../lib/motion'
@@ -18,6 +21,7 @@ import Button from './ui/Button'
 import IconButton from './ui/IconButton'
 import Skeleton from './ui/Skeleton'
 import Badge from './ui/Badge'
+import AnimatedNumber from './ui/AnimatedNumber'
 
 const GRID_COLS = '52px 1.3fr 1.4fr 88px'
 
@@ -113,7 +117,8 @@ function ServiceBadges({ service }) {
   )
 }
 
-export default function ServicesPanel({ services, loading, onNew, onEdit, onDelete, canEdit = true }) {
+export default function ServicesPanel({ services, categoriesCount = 0, loading, onNew, onEdit, onDelete, canEdit = true }) {
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [visibilityFilter, setVisibilityFilter] = useState('all') // all | visible | hidden
   const [newFilter, setNewFilter] = useState('all') // all | new | regular
@@ -122,7 +127,7 @@ export default function ServicesPanel({ services, loading, onNew, onEdit, onDele
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return services.filter((s) => {
-      const matchesQuery = !q || s.title.toLowerCase().includes(q) || (s.description ?? '').toLowerCase().includes(q)
+      const matchesQuery = !q || s.name.toLowerCase().includes(q) || (s.description ?? '').toLowerCase().includes(q)
       const matchesVisibility =
         visibilityFilter === 'all' || (visibilityFilter === 'visible' ? Boolean(s.visible) : !s.visible)
       const matchesNew = newFilter === 'all' || (newFilter === 'new' ? Boolean(s.is_new) : !s.is_new)
@@ -140,6 +145,33 @@ export default function ServicesPanel({ services, loading, onNew, onEdit, onDele
 
   return (
     <div>
+      <motion.button
+        type="button"
+        onClick={() => navigate('/dashboard/categories')}
+        whileHover={{ y: -2 }}
+        whileTap={{ scale: 0.98 }}
+        className="group mb-5 flex w-full max-w-[300px] items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 text-left shadow-card transition-colors duration-150 hover:border-brand-blue/40 hover:bg-surface-subtle hover:shadow-popover cursor-pointer"
+      >
+        <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-brand-cyan/15 to-brand-blue/15 text-brand-blue transition-transform duration-150 group-hover:scale-105">
+          <Tag size={20} weight="bold" />
+        </span>
+        <div className="flex flex-1 flex-col gap-0.5">
+          <span className="text-[12px] font-semibold text-ink-400">Catégories</span>
+          {loading ? (
+            <Skeleton className="h-[24px] w-10" />
+          ) : (
+            <span className="font-heading text-[22px] font-bold leading-none text-ink-900">
+              <AnimatedNumber value={categoriesCount} />
+            </span>
+          )}
+        </div>
+        <CaretRight
+          size={16}
+          weight="bold"
+          className="flex-none text-ink-300 transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-brand-blue"
+        />
+      </motion.button>
+
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <span className="flex-none text-[13.5px] text-ink-600">
           {loading ? (
@@ -262,7 +294,7 @@ export default function ServicesPanel({ services, loading, onNew, onEdit, onDele
             style={{ gridTemplateColumns: GRID_COLS }}
           >
             <span></span>
-            <span>Titre</span>
+            <span>Nom</span>
             <span>Description</span>
             <span></span>
           </div>
@@ -282,16 +314,23 @@ export default function ServicesPanel({ services, loading, onNew, onEdit, onDele
                   }`}
                 >
                   <div className="hidden items-center gap-3 md:grid" style={{ gridTemplateColumns: GRID_COLS }}>
-                    <span
-                      aria-hidden="true"
-                      className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-brand-blue/10 font-heading text-[14px] font-bold text-brand-blue"
-                    >
-                      {s.icon || '◐'}
-                    </span>
+                    {s.image ? (
+                      <img src={s.image} alt="" className="h-8 w-8 flex-none rounded-lg object-cover" />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-brand-blue/10 font-heading text-[14px] font-bold text-brand-blue"
+                      >
+                        ◐
+                      </span>
+                    )}
                     <div className="flex min-w-0 flex-col gap-1">
-                      <span className="min-w-0 truncate font-heading text-[14px] font-semibold text-ink-900">{s.title}</span>
-                      {(Boolean(s.is_new) || !s.visible) && (
+                      <span className="min-w-0 truncate font-heading text-[14px] font-semibold text-ink-900">{s.name}</span>
+                      {(Boolean(s.is_new) || !s.visible || s.category_name) && (
                         <div className="flex flex-wrap items-center gap-1.5">
+                          {s.category_name && (
+                            <Badge label={s.category_name} textClass="text-brand-blue" bgClass="bg-brand-blue/10" />
+                          )}
                           <ServiceBadges service={s} />
                         </div>
                       )}
@@ -314,15 +353,22 @@ export default function ServicesPanel({ services, loading, onNew, onEdit, onDele
                   <div className="flex flex-col gap-2.5 md:hidden">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <span
-                          aria-hidden="true"
-                          className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-brand-blue/10 font-heading text-[14px] font-bold text-brand-blue"
-                        >
-                          {s.icon || '◐'}
-                        </span>
+                        {s.image ? (
+                          <img src={s.image} alt="" className="h-8 w-8 flex-none rounded-lg object-cover" />
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-brand-blue/10 font-heading text-[14px] font-bold text-brand-blue"
+                          >
+                            ◐
+                          </span>
+                        )}
                         <div className="flex min-w-0 flex-col gap-1">
-                          <span className="min-w-0 truncate font-heading text-[14px] font-semibold text-ink-900">{s.title}</span>
+                          <span className="min-w-0 truncate font-heading text-[14px] font-semibold text-ink-900">{s.name}</span>
                           <div className="flex flex-wrap items-center gap-1.5">
+                            {s.category_name && (
+                              <Badge label={s.category_name} textClass="text-brand-blue" bgClass="bg-brand-blue/10" />
+                            )}
                             <ServiceBadges service={s} />
                           </div>
                         </div>
@@ -366,12 +412,16 @@ export default function ServicesPanel({ services, loading, onNew, onEdit, onDele
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span
-                      aria-hidden="true"
-                      className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-brand-blue/10 font-heading text-[17px] font-bold text-brand-blue"
-                    >
-                      {s.icon || '◐'}
-                    </span>
+                    {s.image ? (
+                      <img src={s.image} alt="" className="h-10 w-10 flex-none rounded-xl object-cover" />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-brand-blue/10 font-heading text-[17px] font-bold text-brand-blue"
+                      >
+                        ◐
+                      </span>
+                    )}
                     {canEdit && (
                       <div className="flex flex-none gap-1.5">
                         <IconButton label="Éditer" onClick={() => onEdit(s)}>
@@ -385,8 +435,11 @@ export default function ServicesPanel({ services, loading, onNew, onEdit, onDele
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <h3 className="m-0 min-w-0 truncate font-heading text-[14.5px] font-semibold text-ink-900">{s.title}</h3>
+                    <h3 className="m-0 min-w-0 truncate font-heading text-[14.5px] font-semibold text-ink-900">{s.name}</h3>
                     <div className="flex flex-wrap items-center gap-1.5">
+                      {s.category_name && (
+                        <Badge label={s.category_name} textClass="text-brand-blue" bgClass="bg-brand-blue/10" />
+                      )}
                       <ServiceBadges service={s} />
                     </div>
                     <p className="m-0 line-clamp-3 text-[13px] leading-[1.6] text-ink-600">{s.description}</p>

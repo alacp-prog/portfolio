@@ -94,6 +94,22 @@ export function deleteService(id) {
   return apiFetch(`/services/${id}`, { method: 'DELETE' })
 }
 
+export function getCategories() {
+  return apiFetch('/service-categories')
+}
+
+export function createCategory(data) {
+  return apiFetch('/service-categories', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export function updateCategory(id, data) {
+  return apiFetch(`/service-categories/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+}
+
+export function deleteCategory(id) {
+  return apiFetch(`/service-categories/${id}`, { method: 'DELETE' })
+}
+
 export function getUsers() {
   return apiFetch('/users')
 }

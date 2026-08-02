@@ -1,50 +1,46 @@
-import { ServiceRepository } from "../repositories/service.repository";
+import { ServiceCategoryRepository } from "../repositories/serviceCategory.repository";
 
-export class ServiceService {
-  private repository: ServiceRepository;
+export class ServiceCategoryService {
+  private repository: ServiceCategoryRepository;
 
   constructor(db: D1Database) {
-    this.repository = new ServiceRepository(db);
+    this.repository = new ServiceCategoryRepository(db);
   }
 
-  async getServices() {
+  async getCategories() {
     return await this.repository.findAll();
   }
 
-  async getService(id: string) {
+  async getCategory(id: string) {
     return await this.repository.findById(id);
   }
 
-  async createService(data: {
-    categoryId: string;
+  async countLinkedServices(id: string) {
+    return await this.repository.countLinkedServices(id);
+  }
+
+  async createCategory(data: {
     name: string;
     slug: string;
-    problems: string[];
     description?: string;
-    image?: string;
     isNew: boolean;
-    visible: boolean;
   }): Promise<string> {
     return await this.repository.create(data);
   }
 
-  async updateService(
+  async updateCategory(
     id: string,
     data: {
-      categoryId?: string;
       name?: string;
       slug?: string;
-      problems?: string[];
       description?: string;
-      image?: string;
       isNew?: boolean;
-      visible?: boolean;
     }
   ) {
     return await this.repository.update(id, data);
   }
 
-  async deleteService(id: string) {
+  async deleteCategory(id: string) {
     return await this.repository.delete(id);
   }
 }
