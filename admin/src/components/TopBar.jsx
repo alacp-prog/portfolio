@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { List, CaretRight, Sun, Moon } from '@phosphor-icons/react'
+import { useNavigate } from 'react-router-dom'
+import { List, CaretRight, ArrowLeft, Sun, Moon } from '@phosphor-icons/react'
 import { tapScale } from '../lib/motion'
 
 export default function TopBar({
@@ -9,6 +10,7 @@ export default function TopBar({
   onToggleTheme,
   adminEmail,
 }) {
+  const navigate = useNavigate()
   const initials = adminEmail ? adminEmail.slice(0, 2).toUpperCase() : 'AB'
 
   return (
@@ -16,9 +18,18 @@ export default function TopBar({
       <div className="flex items-center gap-3">
         <button
           type="button"
+          onClick={() => navigate(-1)}
+          aria-label="Retour"
+          title="Retour"
+          className="-ml-1.5 flex h-9 w-9 flex-none items-center justify-center rounded-lg text-ink-600 hover:bg-surface-muted cursor-pointer"
+        >
+          <ArrowLeft size={18} />
+        </button>
+        <button
+          type="button"
           onClick={onOpenMobileNav}
           aria-label="Ouvrir la navigation"
-          className="-ml-1.5 flex h-9 w-9 items-center justify-center rounded-lg text-ink-600 hover:bg-surface-muted md:hidden cursor-pointer"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-600 hover:bg-surface-muted md:hidden cursor-pointer"
         >
           <List size={19} />
         </button>
